@@ -1,8 +1,7 @@
 ﻿using System;
-using OpenQA.Selenium;
+using System.Linq;
+using System.Text.Json;
 using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Support.UI;
-using SeleniumExtras.WaitHelpers;
 
 namespace coach_bags_selenium
 {
@@ -12,6 +11,8 @@ namespace coach_bags_selenium
         {
             var options = new ChromeOptions();
             options.AddExcludedArgument("enable-automation");
+            options.AddArgument("headless");
+            options.AddArgument("no-sandbox"); // need to run inside container
             options.AddAdditionalCapability("useAutomationExtension", false);
             var driver = new ChromeDriver(options);
             driver.ExecuteChromeCommand("Network.setUserAgentOverride", new System.Collections.Generic.Dictionary<string, object> {
@@ -25,12 +26,20 @@ namespace coach_bags_selenium
                 }
             });
 
-            WebDriverWait _wait = new WebDriverWait(driver, new TimeSpan(0, 0, 10));
             try {
-                var url= "https://coachaustralia.com/on/demandware.store/Sites-au-coach-Site/en_AU/Search-UpdateGrid?cgid=sale-womens_sale-bags&start=0&sz=10";
-                //var url = "https://coachaustralia.com/catalog/sale/womens-sale/bags/";
-                //var url ="https://shop.coles.com.au/search/resources/store/20501/productview/2364711P";
+                var count = 10;
+                var url= $"https://coachaustralia.com/on/demandware.store/Sites-au-coach-Site/en_AU/Search-UpdateGrid?cgid=sale-womens_sale-bags&start=0&sz={count}";
+
                 driver.Navigate().GoToUrl(url);
+                var products = 
+                    driver.FindElementsByClassName("product-tile-card")
+                    .Select(p => new Product(p));
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                };
+                
+                Console.WriteLine(JsonSerializer.Serialize(products, jsonOptions));
             }
             catch (Exception e) {
                 Console.WriteLine(e.Message);
