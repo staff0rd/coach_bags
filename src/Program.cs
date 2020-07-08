@@ -10,21 +10,19 @@ namespace coach_bags_selenium
         static void Main(string[] args)
         {
             var options = new ChromeOptions();
-            options.AddExcludedArgument("enable-automation");
             options.AddArgument("headless");
             options.AddArgument("no-sandbox"); // need to run inside container
-            options.AddAdditionalCapability("useAutomationExtension", false);
+            
             var driver = new ChromeDriver(options);
-            driver.ExecuteChromeCommand("Network.setUserAgentOverride", new System.Collections.Generic.Dictionary<string, object> {
-                { "userAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.53 Safari/537.36" }
-            });
-            driver.ExecuteChromeCommand("Page.addScriptToEvaluateOnNewDocument", new System.Collections.Generic.Dictionary<string, object> {
-                { "source", @"
-                    Object.defineProperty(navigator, 'webdriver', {
-                    get: () => undefined
-                    })" 
-                }
-            });
+            driver.ExecuteChromeCommand("Page.addScriptToEvaluateOnNewDocument", 
+                new System.Collections.Generic.Dictionary<string, object> {
+                    { "source", @"
+                        Object.defineProperty(navigator, 'webdriver', {
+                            get: () => undefined
+                        })" 
+                    }
+                 }
+            );
 
             try {
                 var count = 10;
