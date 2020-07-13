@@ -9,9 +9,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/coach_bags_selenium/bin/Debug/netcoreapp3.1/coach_bags_selenium.dll",
+            "program": "${workspaceFolder}/src/bin/Debug/netcoreapp3.1/coach_bags_selenium.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/coach_bags_selenium",
+            "cwd": "${workspaceFolder}/src",
             "console": "internalConsole",
             "stopAtEntry": false
         },

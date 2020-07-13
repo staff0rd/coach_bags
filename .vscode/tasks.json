@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/coach_bags_selenium/coach_bags_selenium.csproj",
+                "${workspaceFolder}/src/coach_bags_selenium.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/coach_bags_selenium/coach_bags_selenium.csproj",
+                "${workspaceFolder}/src/coach_bags_selenium.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -32,7 +32,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/coach_bags_selenium/coach_bags_selenium.csproj",
+                "${workspaceFolder}/src/coach_bags_selenium.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
