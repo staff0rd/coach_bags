@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/src/Scraper/bin/Debug/netcoreapp3.1/coach_bags_selenium.dll",
-            "args": [],
+            "args": [ "User ID=postgres;Password=example;Host=localhost;Database=coach_bags;" ],
             "cwd": "${workspaceFolder}/src",
             "console": "internalConsole",
             "stopAtEntry": false

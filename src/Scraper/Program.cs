@@ -1,6 +1,11 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using coach_bags_selenium.Data;
+using Flurl.Http;
+using Microsoft.EntityFrameworkCore;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
 namespace coach_bags_selenium
@@ -33,15 +38,30 @@ namespace coach_bags_selenium
 
                 driver.Navigate().GoToUrl(url);
                 var products = 
-                    driver.FindElementsByClassName("product-tile-card")
+                    driver.FindElementsByClassName("product")
                     .Select(p => new Product(p));
                 Console.WriteLine($"Found {products.Count()} products");
                 var jsonOptions = new JsonSerializerOptions
                 {
                     WriteIndented = true
                 };
+
+                var db = new coach_bags_selenium.Data.DatabaseContext(args[0]);    
+                db.Database.Migrate();
+
+                var now = Save(db, products.Select(p => p.AsEntity));
+                Random rand = new Random();
+                var pendingProducts = db.Products
+                    .Where(p => p.LastUpdatedUtc >= now && p.LastPostedUtc == null)
+                    .ToArray();
+
+                int index = rand.Next(pendingProducts.Length);
+
+                var productToPost = pendingProducts.ElementAt(index);
+                productToPost.LastPostedUtc = now;
                 
-                //Console.WriteLine(JsonSerializer.Serialize(products, jsonOptions));
+                var src = products.Single(p => p.Id == productToPost.Id).Image;
+                src.DownloadFileAsync("download", "image.jpg").Wait();
             }
             catch (Exception e) {
                 Console.WriteLine(e.Message);
@@ -49,6 +69,34 @@ namespace coach_bags_selenium
             finally {
                 driver?.Quit();
             }
+        }
+
+        private static DateTime Save(DatabaseContext db, IEnumerable<Data.Product> products)
+        {
+            var now = DateTime.UtcNow;
+
+            foreach (var product in products)
+            {
+                product.LastUpdatedUtc = now;
+                
+                var existing = db.Products.FirstOrDefault(p => p.Id == product.Id);
+                if (existing is null)
+                {
+                    product.CreatedUtc = now;
+                    db.Products.Add(product);
+                } else
+                {
+                    existing.Link = product.Link;
+                    existing.Name = product.Name;
+                    existing.SalePrice = product.SalePrice;
+                    existing.Price = product.Price;
+                    existing.Savings = product.Savings;
+                    existing.LastUpdatedUtc = now;
+                }
+            }
+            Console.WriteLine("Saving...");
+            db.SaveChanges();
+            return now;
         }
     }
 }
