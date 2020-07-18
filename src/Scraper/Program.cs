@@ -77,6 +77,7 @@ namespace coach_bags_selenium
                     {
                         Medias = new List<IMedia> { media }
                     });
+                    Console.WriteLine($"Tweeted: {text}");
                     db.SaveChanges();
                 } else 
                     Console.WriteLine("Nothing new to tweet");
