@@ -76,7 +76,7 @@ namespace coach_bags_selenium
 
                 Auth.SetUserCredentials(twitterOptions.ConsumerKey, twitterOptions.ConsumerSecret, twitterOptions.AccessToken, twitterOptions.AccessTokenSecret);
 
-                var text = $"{product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} - {product.Link}";
+                var text = $"{product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
 
                 byte[] file1 = File.ReadAllBytes(filePath);
                 var media = Upload.UploadBinary(file1);
@@ -120,7 +120,7 @@ namespace coach_bags_selenium
                     for (int ix = 0; ix < gutterWidth; ix++)
                     {
                         i.DrawImage(leftStrip, new Point(ix, 0), 1);
-                        i.DrawImage(rightStrip, new Point(ix + 628 + gutterWidth, 1), 1);
+                        i.DrawImage(rightStrip, new Point(ix + 628 + gutterWidth, 0), 1);
                     }
                 });
 
