@@ -68,17 +68,17 @@ namespace coach_bags_selenium
 
                 int index = rand.Next(pendingProducts.Length);
 
-                var productToPost = pendingProducts.ElementAt(index);
-                productToPost.LastPostedUtc = now;
+                var entity = pendingProducts.ElementAt(index);
+                entity.LastPostedUtc = now;
 
-                var src = products.Single(p => p.Id == productToPost.Id).Image;
+                var src = products.Single(p => p.Id == entity.Id).Image;
                 var fileName = "image.jpg";
                 var directory = "download";
                 src.DownloadFileAsync(directory, fileName).Wait();
 
                 Auth.SetUserCredentials(twitterOptions.ConsumerKey, twitterOptions.ConsumerSecret, twitterOptions.AccessToken, twitterOptions.AccessTokenSecret);
 
-                var text = $"{productToPost.Name} - {productToPost.SavingsPercent}% off, was ${productToPost.Price}, now ${productToPost.SalePrice} - {productToPost.Link}";                
+                var text = $"{entity.Name} - {entity.SavingsPercent}% off, was ${entity.Price}, now ${entity.SalePrice} - {entity.Link}";                
 
                 byte[] file1 = File.ReadAllBytes(Path.Combine(directory, fileName));
                 var media = Upload.UploadBinary(file1);
@@ -86,6 +86,8 @@ namespace coach_bags_selenium
                 {
                     Medias = new List<IMedia> { media }
                 });
+                entity.LastPostedUtc = now;
+                db.SaveChanges();
             }
             catch (Exception e)
             {
