@@ -37,7 +37,6 @@ namespace coach_bags_selenium
 
                 });
 
-
         private IHostEnvironment _env;
         private IConfiguration _config;
 
@@ -60,25 +59,19 @@ namespace coach_bags_selenium
             {
                 IEnumerable<Product> products = GetProducts(driver, count);
                 var now = Save(db, products.Select(p => p.AsEntity));
+                
+                var product = ChooseProductToTweet(db, now);
 
-                Random rand = new Random();
-                var pendingProducts = db.Products
-                    .Where(p => p.LastUpdatedUtc >= now && p.LastPostedUtc == null)
-                    .ToArray();
+                product.LastPostedUtc = now;
 
-                int index = rand.Next(pendingProducts.Length);
-
-                var entity = pendingProducts.ElementAt(index);
-                entity.LastPostedUtc = now;
-
-                var src = products.Single(p => p.Id == entity.Id).Image;
+                var src = products.Single(p => p.Id == product.Id).Image;
                 var fileName = "image.jpg";
                 var directory = "download";
                 src.DownloadFileAsync(directory, fileName).Wait();
 
                 Auth.SetUserCredentials(twitterOptions.ConsumerKey, twitterOptions.ConsumerSecret, twitterOptions.AccessToken, twitterOptions.AccessTokenSecret);
 
-                var text = $"{entity.Name} - {entity.SavingsPercent}% off, was ${entity.Price}, now ${entity.SalePrice} - {entity.Link}";                
+                var text = $"{product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} - {product.Link}";
 
                 byte[] file1 = File.ReadAllBytes(Path.Combine(directory, fileName));
                 var media = Upload.UploadBinary(file1);
@@ -86,7 +79,6 @@ namespace coach_bags_selenium
                 {
                     Medias = new List<IMedia> { media }
                 });
-                entity.LastPostedUtc = now;
                 db.SaveChanges();
             }
             catch (Exception e)
@@ -97,6 +89,19 @@ namespace coach_bags_selenium
             {
                 driver?.Quit();
             }
+        }
+
+        private static Data.Product ChooseProductToTweet(DatabaseContext db, DateTime now)
+        {
+            var pendingProducts = db.Products
+                .Where(p => p.LastUpdatedUtc >= now && p.LastPostedUtc == null)
+                .ToArray();
+
+            Random rand = new Random();
+            int index = rand.Next(pendingProducts.Length);
+
+            var entity = pendingProducts.ElementAt(index);
+            return entity;
         }
 
         private static IEnumerable<Product> GetProducts(ChromeDriver driver, int count)
