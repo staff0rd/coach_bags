@@ -63,28 +63,31 @@ namespace coach_bags_selenium
             {
                 IEnumerable<Product> products = GetProducts(driver, count);
                 var now = Save(db, products.Select(p => p.AsEntity));
-                
                 var product = ChooseProductToTweet(db, now);
 
-                product.LastPostedUtc = now;
-
-                var src = products.Single(p => p.Id == product.Id).Image;
-                var fileName = "image.jpg";
-                var directory = "download";
-                src.DownloadFileAsync(directory, fileName).Wait();
-                var filePath = PrepareImage(directory, fileName);
-
-                Auth.SetUserCredentials(twitterOptions.ConsumerKey, twitterOptions.ConsumerSecret, twitterOptions.AccessToken, twitterOptions.AccessTokenSecret);
-
-                var text = $"{product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
-
-                byte[] file1 = File.ReadAllBytes(filePath);
-                var media = Upload.UploadBinary(file1);
-                var tweet = Tweet.PublishTweet(text, new PublishTweetOptionalParameters
+                if (product != null)
                 {
-                    Medias = new List<IMedia> { media }
-                });
-                db.SaveChanges();
+                    product.LastPostedUtc = now;
+
+                    var src = products.Single(p => p.Id == product.Id).Image;
+                    var fileName = "image.jpg";
+                    var directory = "download";
+                    src.DownloadFileAsync(directory, fileName).Wait();
+                    var filePath = PrepareImage(directory, fileName);
+
+                    Auth.SetUserCredentials(twitterOptions.ConsumerKey, twitterOptions.ConsumerSecret, twitterOptions.AccessToken, twitterOptions.AccessTokenSecret);
+
+                    var text = $"{product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
+
+                    byte[] file1 = File.ReadAllBytes(filePath);
+                    var media = Upload.UploadBinary(file1);
+                    var tweet = Tweet.PublishTweet(text, new PublishTweetOptionalParameters
+                    {
+                        Medias = new List<IMedia> { media }
+                    });
+                    db.SaveChanges();
+                } else 
+                    Console.WriteLine("Nothing new to tweet");
             }
             catch (Exception e)
             {
@@ -133,8 +136,12 @@ namespace coach_bags_selenium
         private static Data.Product ChooseProductToTweet(DatabaseContext db, DateTime now)
         {
             var pendingProducts = db.Products
-                .Where(p => p.LastUpdatedUtc >= now && p.LastPostedUtc == null)
+                .Where(p => p.LastUpdatedUtc >= now) // still available on page
+                .Where(p => p.LastPostedUtc == null) // not yet tweeted
                 .ToArray();
+
+            if (!pendingProducts.Any())
+                return null;
 
             Random rand = new Random();
             int index = rand.Next(pendingProducts.Length);
