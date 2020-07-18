@@ -14,6 +14,10 @@ using System.IO;
 using Tweetinvi;
 using Tweetinvi.Parameters;
 using Tweetinvi.Models;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.PixelFormats;
 
 [assembly: UserSecretsIdAttribute("35c1247a-0256-4d98-b811-eb58b6162fd7")]
 namespace coach_bags_selenium
@@ -68,12 +72,13 @@ namespace coach_bags_selenium
                 var fileName = "image.jpg";
                 var directory = "download";
                 src.DownloadFileAsync(directory, fileName).Wait();
+                var filePath = PrepareImage(directory, fileName);
 
                 Auth.SetUserCredentials(twitterOptions.ConsumerKey, twitterOptions.ConsumerSecret, twitterOptions.AccessToken, twitterOptions.AccessTokenSecret);
 
                 var text = $"{product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} - {product.Link}";
 
-                byte[] file1 = File.ReadAllBytes(Path.Combine(directory, fileName));
+                byte[] file1 = File.ReadAllBytes(filePath);
                 var media = Upload.UploadBinary(file1);
                 var tweet = Tweet.PublishTweet(text, new PublishTweetOptionalParameters
                 {
@@ -89,6 +94,40 @@ namespace coach_bags_selenium
             {
                 driver?.Quit();
             }
+        }
+
+        private static string PrepareImage(string directory, string file)
+        {
+            var outputPath = Path.Combine(directory, "output.jpg");
+            using (var newImage = new Image<Rgba32>(1200, 628))
+            using (Image img = Image.Load(Path.Combine(directory, file)))
+            {
+                img.Mutate(i =>
+                {
+                    i.Resize(628, 628);
+                });
+                var leftStrip = img.Clone(i => {
+                    i.Crop(1, 628);
+                });
+                var rightStrip = img.Clone(i => {
+                    i.Crop(new Rectangle(628-1, 0, 1, 628));
+                });
+                var gutterWidth = 1200/2-628/2;
+                newImage.Mutate(i => {
+                    i.DrawImage(img, new Point(gutterWidth, 0), 1);
+
+                    // fill gutters
+                    for (int ix = 0; ix < gutterWidth; ix++)
+                    {
+                        i.DrawImage(leftStrip, new Point(ix, 0), 1);
+                        i.DrawImage(rightStrip, new Point(ix + 628 + gutterWidth, 1), 1);
+                    }
+                });
+
+                newImage.Save(outputPath);
+            }
+            
+            return outputPath;
         }
 
         private static Data.Product ChooseProductToTweet(DatabaseContext db, DateTime now)
