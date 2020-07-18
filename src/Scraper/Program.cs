@@ -22,14 +22,6 @@ using SixLabors.ImageSharp.PixelFormats;
 [assembly: UserSecretsIdAttribute("35c1247a-0256-4d98-b811-eb58b6162fd7")]
 namespace coach_bags_selenium
 {
-    public class TwitterOptions
-    {
-        public string ConsumerSecret { get; set; }
-        public string ConsumerKey { get; set; }
-        public string AccessToken { get; set; }
-        public string AccessTokenSecret { get; set; }
-    }
-
     class Program
     {
         static Task Main(string[] args) => CreateHostBuilder().RunCommandLineApplicationAsync<Program>(args);
