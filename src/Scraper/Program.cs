@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using coach_bags_selenium.Data;
 using Flurl.Http;
@@ -16,7 +15,6 @@ using Tweetinvi.Parameters;
 using Tweetinvi.Models;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 
 [assembly: UserSecretsIdAttribute("35c1247a-0256-4d98-b811-eb58b6162fd7")]
@@ -34,9 +32,9 @@ namespace coach_bags_selenium
                 });
 
         private IHostEnvironment _env;
-        private IConfiguration _config;
+        private Microsoft.Extensions.Configuration.IConfiguration _config;
 
-        public Program(IHostEnvironment env, IConfiguration config)
+        public Program(IHostEnvironment env, Microsoft.Extensions.Configuration.IConfiguration config)
         {
             _env = env;
             _config = config;
@@ -49,13 +47,15 @@ namespace coach_bags_selenium
             var connectionString = _config.GetConnectionString("Postgres");
             var db = new coach_bags_selenium.Data.DatabaseContext(connectionString);
             db.Database.Migrate();
+
             var driver = ConfigureDriver();
 
             try
             {
-                IEnumerable<Product> products = GetProducts(driver, count);
-                var now = Save(db, products.Select(p => p.AsEntity));
-                var product = ChooseProductToTweet(db, now);
+                var products = (GetFwrdShoes(driver).Result);
+                //var products = GetCoachBags(driver, count);
+                var now = Save(db, products);
+                var product = ChooseProductToTweet(db, products.First().Category, now);
 
                 if (product != null)
                 {
@@ -65,14 +65,15 @@ namespace coach_bags_selenium
                     var fileName = "image.jpg";
                     var directory = "download";
                     src.DownloadFileAsync(directory, fileName).Wait();
-                    var filePath = PrepareImage(directory, fileName);
+                    var imageFilePath = PrepareImage(directory, fileName);
+                    byte[] image = File.ReadAllBytes(imageFilePath);
 
-                    Auth.SetUserCredentials(twitterOptions.ConsumerKey, twitterOptions.ConsumerSecret, twitterOptions.AccessToken, twitterOptions.AccessTokenSecret);
 
                     var text = $"{product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
 
-                    byte[] file1 = File.ReadAllBytes(filePath);
-                    var media = Upload.UploadBinary(file1);
+                    
+                    Auth.SetUserCredentials(twitterOptions.ConsumerKey, twitterOptions.ConsumerSecret, twitterOptions.AccessToken, twitterOptions.AccessTokenSecret);
+                    var media = Upload.UploadBinary(image);
                     var tweet = Tweet.PublishTweet(text, new PublishTweetOptionalParameters
                     {
                         Medias = new List<IMedia> { media }
@@ -126,9 +127,10 @@ namespace coach_bags_selenium
             return outputPath;
         }
 
-        private static Data.Product ChooseProductToTweet(DatabaseContext db, DateTime now)
+        private static Data.Product ChooseProductToTweet(DatabaseContext db, Category category, DateTime now)
         {
             var pendingProducts = db.Products
+                .Where(p => p.Category == category)
                 .Where(p => p.LastUpdatedUtc >= now) // still available on page
                 .Where(p => p.LastPostedUtc == null) // not yet tweeted
                 .ToArray();
@@ -143,18 +145,29 @@ namespace coach_bags_selenium
             return entity;
         }
 
-        private static IEnumerable<Product> GetProducts(ChromeDriver driver, int count)
+        private static IEnumerable<Product> GetCoachBags(ChromeDriver driver, int count)
         {
             var url = $"https://coachaustralia.com/on/demandware.store/Sites-au-coach-Site/en_AU/Search-UpdateGrid?cgid=sale-womens_sale-bags&start=0&sz={count}";
             driver.Navigate().GoToUrl(url);
+
             var products =
                 driver.FindElementsByClassName("product")
-                .Select(p => new Product(p));
+                .Select(p => new CoachBag(p).AsEntity);
             Console.WriteLine($"Found {products.Count()} products");
-            var jsonOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
+            return products;
+        }
+
+        private async static Task<IEnumerable<Product>> GetFwrdShoes(ChromeDriver driver)
+        {
+            var url = "https://www.fwrd.com/sale-category-shoes/ba4e3d/?pageNum=1&sortBy=newestMarkdown";
+            driver.Navigate().GoToUrl(url);
+            await Task.Delay(5000);
+            var products =
+                driver.FindElementsByClassName("products-grid__item")
+                .Select(p => new ForwardProduct(p).AsEntity(Category.FwrdShoes))
+                .ToList();
+
+            Console.WriteLine($"Found {products.Count()} products");
             return products;
         }
 
@@ -188,7 +201,7 @@ namespace coach_bags_selenium
             {
                 product.LastUpdatedUtc = now;
                 
-                var existing = db.Products.FirstOrDefault(p => p.Id == product.Id);
+                var existing = db.Products.FirstOrDefault(p => p.Id == product.Id && p.Category == product.Category);
                 if (existing is null)
                 {
                     product.CreatedUtc = now;
@@ -201,6 +214,7 @@ namespace coach_bags_selenium
                     existing.Price = product.Price;
                     existing.Savings = product.Savings;
                     existing.LastUpdatedUtc = now;
+                    existing.Image = product.Image;
                 }
             }
             Console.WriteLine("Saving...");

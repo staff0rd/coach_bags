@@ -1,31 +1,23 @@
-using OpenQA.Selenium;
+using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace coach_bags_selenium
+namespace coach_bags_selenium.Data
 {
+
     public class Product
     {
-        private readonly IWebElement _element;
-        public string Link => _element.FindElement(By.CssSelector(".card-img a")).GetAttribute("href");
-        public string Name => _element.FindElement(By.ClassName("product-tile-name")).Text;
-        public decimal SalePrice => decimal.Parse(_element.FindElement(By.CssSelector(".sales .value")).GetAttribute("content"));
-        public decimal Price => decimal.Parse(_element.FindElement(By.CssSelector(".strike-through .value")).GetAttribute("content"));
-        public decimal Savings => Price - SalePrice;
-        public string Id => _element.GetAttribute("data-pid");
-        public string Image => _element.FindElement(By.ClassName("card-img-top")).GetAttribute("src");
-
-        public Product(IWebElement element)
-        {
-            _element = element;
-        }
-
-        public coach_bags_selenium.Data.Product AsEntity => new Data.Product
-        {
-            Link = Link,
-            Name = Name,
-            SalePrice = SalePrice,
-            Price = Price,
-            Savings = Savings,
-            Id = Id,
-        };
+        public string Link { get; set; }
+        public string Name { get; set; }
+        public decimal SalePrice { get; set; }
+        public decimal Price { get; set; }
+        public decimal Savings { get; set; }
+        public string Id { get; set; }
+        [NotMapped]
+        public int SavingsPercent => 100 - (int)Math.Round(SalePrice / Price * 100, 0);
+        public DateTime? LastPostedUtc { get; set; }
+        public DateTime? LastUpdatedUtc { get; set; }
+        public DateTime CreatedUtc { get; set; }
+        public string Image { get; set; }
+        public Category Category { get; set; }
     }
 }
