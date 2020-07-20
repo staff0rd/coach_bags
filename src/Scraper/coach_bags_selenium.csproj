@@ -6,6 +6,7 @@
     <UserSecretsId>35c1247a-0256-4d98-b811-eb58b6162fd7</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="0.14.0" />
     <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0" />
     <PackageReference Include="Flurl.Http" Version="2.4.2" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.0.0" />

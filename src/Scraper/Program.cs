@@ -16,6 +16,7 @@ using Tweetinvi.Models;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
+using AngleSharp;
 
 [assembly: UserSecretsIdAttribute("35c1247a-0256-4d98-b811-eb58b6162fd7")]
 namespace coach_bags_selenium
@@ -44,6 +45,7 @@ namespace coach_bags_selenium
         {
             var twitterOptions = _config.GetSection("Twitter").Get<TwitterOptions>();
             var count = _config.GetValue<int>("Count");
+            var category = Enum.Parse<Category>(_config.GetValue<string>("Category"));
             var connectionString = _config.GetConnectionString("Postgres");
             var db = new coach_bags_selenium.Data.DatabaseContext(connectionString);
             db.Database.Migrate();
@@ -52,8 +54,13 @@ namespace coach_bags_selenium
 
             try
             {
-                var products = (GetFwrdShoes(driver).Result);
-                //var products = GetCoachBags(driver, count);
+                IEnumerable<Product> products = null;
+                switch (category)
+                {
+                    case Category.CoachBags: products = GetCoachBags(driver, count); break;
+                    case Category.FwrdShoes: products = GetFwrdShoes(driver).Result; break;
+                }
+                
                 var now = Save(db, products);
                 var product = ChooseProductToTweet(db, products.First().Category, now);
 
@@ -101,23 +108,26 @@ namespace coach_bags_selenium
             {
                 img.Mutate(i =>
                 {
-                    i.Resize(628, 628);
+                    i.Resize(0, 628);
                 });
                 var leftStrip = img.Clone(i => {
                     i.Crop(1, 628);
                 });
                 var rightStrip = img.Clone(i => {
-                    i.Crop(new Rectangle(628-1, 0, 1, 628));
+                    var size = i.GetCurrentSize();
+                    //Console.WriteLine($"{size.Width}x{size.Height}");
+                    i.Crop(new Rectangle(size.Width-1, 0, 1, 628));
                 });
-                var gutterWidth = 1200/2-628/2;
                 newImage.Mutate(i => {
+                    var width = img.Width;
+                    var gutterWidth = 1200/2-width/2;
                     i.DrawImage(img, new Point(gutterWidth, 0), 1);
 
                     // fill gutters
                     for (int ix = 0; ix < gutterWidth; ix++)
                     {
                         i.DrawImage(leftStrip, new Point(ix, 0), 1);
-                        i.DrawImage(rightStrip, new Point(ix + 628 + gutterWidth, 0), 1);
+                        i.DrawImage(rightStrip, new Point(ix + width + gutterWidth, 0), 1);
                     }
                 });
 
@@ -159,11 +169,19 @@ namespace coach_bags_selenium
 
         private async static Task<IEnumerable<Product>> GetFwrdShoes(ChromeDriver driver)
         {
-            var url = "https://www.fwrd.com/sale-category-shoes/ba4e3d/?pageNum=1&sortBy=newestMarkdown";
+            var url = "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3FpageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-shoes%2Fba4e3d%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DShoes&currentPageSortBy=newestMarkdown&useLargerImages=true&outfitViewSession=false&showBagSize=false&lookfwrd=false";
             driver.Navigate().GoToUrl(url);
-            await Task.Delay(5000);
-            var products =
-                driver.FindElementsByClassName("products-grid__item")
+
+
+
+            var text = driver.PageSource;
+            var pre = driver.FindElementByCssSelector("pre").Text;
+            var config = AngleSharp.Configuration.Default;
+            var context = BrowsingContext.New(config);
+            var document = await context.OpenAsync(req => req.Content(pre));
+            var ps = document.QuerySelectorAll(".products-grid__item");
+
+            var products = ps
                 .Select(p => new ForwardProduct(p).AsEntity(Category.FwrdShoes))
                 .ToList();
 

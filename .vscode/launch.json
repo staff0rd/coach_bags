@@ -17,7 +17,8 @@
             "env": {
                 "DOTNET_ENVIRONMENT": "Development",
                 "ConnectionStrings:Postgres": "User ID=postgres;Password=example;Host=localhost;Database=coach_bags;",
-                "Count": "30"
+                "Count": "30",
+                "Category": "FwrdShoes"
             }
         },
         {
