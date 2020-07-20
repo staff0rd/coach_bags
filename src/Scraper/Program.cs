@@ -75,10 +75,8 @@ namespace coach_bags_selenium
                     var imageFilePath = PrepareImage(directory, fileName);
                     byte[] image = File.ReadAllBytes(imageFilePath);
 
-
                     var text = $"{product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
 
-                    
                     Auth.SetUserCredentials(twitterOptions.ConsumerKey, twitterOptions.ConsumerSecret, twitterOptions.AccessToken, twitterOptions.AccessTokenSecret);
                     var media = Upload.UploadBinary(image);
                     var tweet = Tweet.PublishTweet(text, new PublishTweetOptionalParameters
