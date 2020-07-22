@@ -17,6 +17,8 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using AngleSharp;
+using System.Text.RegularExpressions;
+using Microsoft.Extensions.DependencyInjection;
 
 [assembly: UserSecretsIdAttribute("35c1247a-0256-4d98-b811-eb58b6162fd7")]
 namespace coach_bags_selenium
@@ -29,16 +31,19 @@ namespace coach_bags_selenium
             Host.CreateDefaultBuilder()
                 .ConfigureServices((hostContext, services) =>
                 {
-
+                    services.AddTransient(_ => new ImageProcessor(1200, 628));
                 });
 
         private IHostEnvironment _env;
         private Microsoft.Extensions.Configuration.IConfiguration _config;
+        private readonly ImageProcessor _imageProcessor;
 
-        public Program(IHostEnvironment env, Microsoft.Extensions.Configuration.IConfiguration config)
+        public Program(IHostEnvironment env, Microsoft.Extensions.Configuration.IConfiguration config,
+            ImageProcessor imageProcessor)
         {
             _env = env;
             _config = config;
+            _imageProcessor = imageProcessor;
         }
 
         public void OnExecute()
@@ -54,38 +59,32 @@ namespace coach_bags_selenium
 
             try
             {
-                IEnumerable<Product> products = null;
-                switch (category)
+                var products = category switch
                 {
-                    case Category.CoachBags: products = GetCoachBags(driver, count); break;
-                    case Category.FwrdShoes: products = GetFwrdShoes(driver).Result; break;
-                }
+                    Category.CoachBags => GetCoachBags(driver, count),
+                    _ => GetFwrdProducts(driver, category).Result,
+                };
                 
-                var now = Save(db, products);
-                var product = ChooseProductToTweet(db, products.First().Category, now);
+                var now = db.Save(products);
+                var product = db.ChooseProductToTweet(products.First().Category, now);
 
                 if (product != null)
                 {
                     product.LastPostedUtc = now;
-
-                    var src = products.Single(p => p.Id == product.Id).Image;
-                    var fileName = "image.jpg";
-                    var directory = "download";
-                    src.DownloadFileAsync(directory, fileName).Wait();
-                    var imageFilePath = PrepareImage(directory, fileName);
-                    byte[] image = File.ReadAllBytes(imageFilePath);
+                    var images = _imageProcessor.GetImages(category, product).ToList();
 
                     var text = $"{product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
 
                     Auth.SetUserCredentials(twitterOptions.ConsumerKey, twitterOptions.ConsumerSecret, twitterOptions.AccessToken, twitterOptions.AccessTokenSecret);
-                    var media = Upload.UploadBinary(image);
+                    var media = UploadImagesToTwitter(images);
                     var tweet = Tweet.PublishTweet(text, new PublishTweetOptionalParameters
                     {
-                        Medias = new List<IMedia> { media }
+                        Medias = media.ToList()
                     });
                     Console.WriteLine($"Tweeted: {text}");
                     db.SaveChanges();
-                } else 
+                }
+                else 
                     Console.WriteLine("Nothing new to tweet");
             }
             catch (Exception e)
@@ -98,59 +97,10 @@ namespace coach_bags_selenium
             }
         }
 
-        private static string PrepareImage(string directory, string file)
+        private static IEnumerable<IMedia> UploadImagesToTwitter(IEnumerable<byte[]> images)
         {
-            var outputPath = Path.Combine(directory, "output.jpg");
-            using (var newImage = new Image<Rgba32>(1200, 628))
-            using (Image img = Image.Load(Path.Combine(directory, file)))
-            {
-                img.Mutate(i =>
-                {
-                    i.Resize(0, 628);
-                });
-                var leftStrip = img.Clone(i => {
-                    i.Crop(1, 628);
-                });
-                var rightStrip = img.Clone(i => {
-                    var size = i.GetCurrentSize();
-                    //Console.WriteLine($"{size.Width}x{size.Height}");
-                    i.Crop(new Rectangle(size.Width-1, 0, 1, 628));
-                });
-                newImage.Mutate(i => {
-                    var width = img.Width;
-                    var gutterWidth = 1200/2-width/2;
-                    i.DrawImage(img, new Point(gutterWidth, 0), 1);
-
-                    // fill gutters
-                    for (int ix = 0; ix < gutterWidth; ix++)
-                    {
-                        i.DrawImage(leftStrip, new Point(ix, 0), 1);
-                        i.DrawImage(rightStrip, new Point(ix + width + gutterWidth, 0), 1);
-                    }
-                });
-
-                newImage.Save(outputPath);
-            }
-            
-            return outputPath;
-        }
-
-        private static Data.Product ChooseProductToTweet(DatabaseContext db, Category category, DateTime now)
-        {
-            var pendingProducts = db.Products
-                .Where(p => p.Category == category)
-                .Where(p => p.LastUpdatedUtc >= now) // still available on page
-                .Where(p => p.LastPostedUtc == null) // not yet tweeted
-                .ToArray();
-
-            if (!pendingProducts.Any())
-                return null;
-
-            Random rand = new Random();
-            int index = rand.Next(pendingProducts.Length);
-
-            var entity = pendingProducts.ElementAt(index);
-            return entity;
+            foreach (var image in images)
+                yield return Upload.UploadBinary(image);
         }
 
         private static IEnumerable<Product> GetCoachBags(ChromeDriver driver, int count)
@@ -165,12 +115,10 @@ namespace coach_bags_selenium
             return products;
         }
 
-        private async static Task<IEnumerable<Product>> GetFwrdShoes(ChromeDriver driver)
+        private async static Task<IEnumerable<Product>> GetFwrdProducts(ChromeDriver driver, Category category)
         {
-            var url = "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3FpageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-shoes%2Fba4e3d%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DShoes&currentPageSortBy=newestMarkdown&useLargerImages=true&outfitViewSession=false&showBagSize=false&lookfwrd=false";
+            string url = GetFwrdUrl(category);
             driver.Navigate().GoToUrl(url);
-
-
 
             var text = driver.PageSource;
             var pre = driver.FindElementByCssSelector("pre").Text;
@@ -180,11 +128,22 @@ namespace coach_bags_selenium
             var ps = document.QuerySelectorAll(".products-grid__item");
 
             var products = ps
-                .Select(p => new ForwardProduct(p).AsEntity(Category.FwrdShoes))
+                .Select(p => new ForwardProduct(p).AsEntity(category))
+                .Where(p => p.SalePrice < 1000)
                 .ToList();
 
             Console.WriteLine($"Found {products.Count()} products");
             return products;
+        }
+
+        private static string GetFwrdUrl(Category category)
+        {
+            return category switch {
+                Category.FwrdShoes => "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3FpageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-shoes%2Fba4e3d%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DShoes&currentPageSortBy=newestMarkdown&useLargerImages=true&outfitViewSession=false&showBagSize=false&lookfwrd=false",
+                Category.FwrdDresses => "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3Fnavsrc%3Dleft%26pageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-dresses%2F28a4b1%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DDresses&currentPageSortBy=newestMarkdown&useLargerImages=false&outfitViewSession=false&showBagSize=false&lookfwrd=false",
+                Category.FwrdBags => "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3Fnavsrc%3Dleft%26pageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-bags%2F01ef40%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DBags&currentPageSortBy=newestMarkdown&useLargerImages=true&outfitViewSession=false&showBagSize=false&lookfwrd=false",
+                _ => throw new ArgumentException(nameof(category))
+            };
         }
 
         private static ChromeDriver ConfigureDriver()
@@ -207,35 +166,6 @@ namespace coach_bags_selenium
                  }
             );
             return driver;
-        }
-
-        private static DateTime Save(DatabaseContext db, IEnumerable<Data.Product> products)
-        {
-            var now = DateTime.UtcNow;
-
-            foreach (var product in products)
-            {
-                product.LastUpdatedUtc = now;
-                
-                var existing = db.Products.FirstOrDefault(p => p.Id == product.Id && p.Category == product.Category);
-                if (existing is null)
-                {
-                    product.CreatedUtc = now;
-                    db.Products.Add(product);
-                } else
-                {
-                    existing.Link = product.Link;
-                    existing.Name = product.Name;
-                    existing.SalePrice = product.SalePrice;
-                    existing.Price = product.Price;
-                    existing.Savings = product.Savings;
-                    existing.LastUpdatedUtc = now;
-                    existing.Image = product.Image;
-                }
-            }
-            Console.WriteLine("Saving...");
-            db.SaveChanges();
-            return now;
         }
     }
 }
