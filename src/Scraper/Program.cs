@@ -31,19 +31,16 @@ namespace coach_bags_selenium
             Host.CreateDefaultBuilder()
                 .ConfigureServices((hostContext, services) =>
                 {
-                    services.AddTransient(_ => new ImageProcessor(1200, 628));
+                    
                 });
 
         private IHostEnvironment _env;
         private Microsoft.Extensions.Configuration.IConfiguration _config;
-        private readonly ImageProcessor _imageProcessor;
 
-        public Program(IHostEnvironment env, Microsoft.Extensions.Configuration.IConfiguration config,
-            ImageProcessor imageProcessor)
+        public Program(IHostEnvironment env, Microsoft.Extensions.Configuration.IConfiguration config)
         {
             _env = env;
             _config = config;
-            _imageProcessor = imageProcessor;
         }
 
         public void OnExecute()
@@ -53,6 +50,7 @@ namespace coach_bags_selenium
             var category = Enum.Parse<Category>(_config.GetValue<string>("Category"));
             var connectionString = _config.GetConnectionString("Postgres");
             var db = new coach_bags_selenium.Data.DatabaseContext(connectionString);
+            var imageProcessor = new ImageProcessor(category);
             db.Database.Migrate();
 
             var driver = ConfigureDriver();
@@ -71,7 +69,7 @@ namespace coach_bags_selenium
                 if (product != null)
                 {
                     product.LastPostedUtc = now;
-                    var images = _imageProcessor.GetImages(category, product).ToList();
+                    var images = imageProcessor.GetImages(category, product).ToList();
 
                     var text = $"{product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
 
