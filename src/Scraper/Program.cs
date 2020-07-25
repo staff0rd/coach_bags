@@ -19,6 +19,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using AngleSharp;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 [assembly: UserSecretsIdAttribute("35c1247a-0256-4d98-b811-eb58b6162fd7")]
 namespace coach_bags_selenium
@@ -36,11 +37,13 @@ namespace coach_bags_selenium
 
         private IHostEnvironment _env;
         private Microsoft.Extensions.Configuration.IConfiguration _config;
+        private ILogger<Program> _logger;
 
-        public Program(IHostEnvironment env, Microsoft.Extensions.Configuration.IConfiguration config)
+        public Program(IHostEnvironment env, Microsoft.Extensions.Configuration.IConfiguration config, ILogger<Program> logger)
         {
             _env = env;
             _config = config;
+            _logger = logger;
         }
 
         public void OnExecute()
@@ -79,15 +82,15 @@ namespace coach_bags_selenium
                     {
                         Medias = media.ToList()
                     });
-                    Console.WriteLine($"Tweeted: {text}");
+                    _logger.LogInformation($"Tweeted: {text}");
                     db.SaveChanges();
                 }
                 else 
-                    Console.WriteLine("Nothing new to tweet");
+                    _logger.LogWarning("Nothing new to tweet");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                _logger.LogCritical(e, "Critical exception");
             }
             finally
             {
@@ -101,7 +104,7 @@ namespace coach_bags_selenium
                 yield return Upload.UploadBinary(image);
         }
 
-        private static IEnumerable<Product> GetCoachBags(ChromeDriver driver, int count)
+        private IEnumerable<Product> GetCoachBags(ChromeDriver driver, int count)
         {
             var url = $"https://coachaustralia.com/on/demandware.store/Sites-au-coach-Site/en_AU/Search-UpdateGrid?cgid=sale-womens_sale-bags&start=0&sz={count}";
             driver.Navigate().GoToUrl(url);
@@ -109,11 +112,11 @@ namespace coach_bags_selenium
             var products =
                 driver.FindElementsByClassName("product")
                 .Select(p => new CoachBag(p).AsEntity);
-            Console.WriteLine($"Found {products.Count()} products");
+            _logger.LogInformation($"Found {products.Count()} products");
             return products;
         }
 
-        private async static Task<IEnumerable<Product>> GetFwrdProducts(ChromeDriver driver, Category category)
+        private async Task<IEnumerable<Product>> GetFwrdProducts(ChromeDriver driver, Category category)
         {
             string url = GetFwrdUrl(category);
             driver.Navigate().GoToUrl(url);
@@ -125,12 +128,16 @@ namespace coach_bags_selenium
             var document = await context.OpenAsync(req => req.Content(pre));
             var ps = document.QuerySelectorAll(".products-grid__item");
 
+            _logger.LogInformation("Parsing");
+
             var products = ps
-                .Select(p => new ForwardProduct(p).AsEntity(category))
+                .Select(p => new ForwardProduct(p))
+                .Where(p => p.SalePrice.HasValue)
+                .Select(p => p.AsEntity(category))
                 .Where(p => p.SalePrice < 1000)
                 .ToList();
 
-            Console.WriteLine($"Found {products.Count()} products");
+            _logger.LogInformation($"Found {products.Count()} products");
             return products;
         }
 

@@ -12,9 +12,14 @@ namespace coach_bags_selenium
             _element.QuerySelectorAll(".product-grids__copy-item")
             .Take(2)
             .Select(p => p.Text()));
-        public decimal SalePrice => decimal.Parse(_element.QuerySelectorAll(".price__sale")[0].Text().Replace("AU$ ", ""));
+
+        private IElement SalePriceElement => _element.QuerySelectorAll(".price__sale").FirstOrDefault();
+        public decimal? SalePrice => SalePriceElement != null ? 
+            (decimal?)decimal.Parse(SalePriceElement.Text().Replace("AU$ ", "")) :
+            null;
+
         public decimal Price => decimal.Parse(_element.QuerySelectorAll(".price__retail")[0].Text().Replace("AU$ ", "").Replace("original price", "").Trim());
-        public decimal Savings => Price - SalePrice;
+        public decimal Savings => SalePrice.HasValue ? Price - SalePrice.Value : 0;
         public string Id => _element.QuerySelectorAll(".product__image-container")[0].GetAttribute("data-code");
         public string Image(Category category) => _element.QuerySelectorAll(ImageClass(category))[0].GetAttribute("data-lazy-src").Replace("fw/p", "fw/z");
         private string ImageClass(Category category) => category switch {
@@ -30,7 +35,7 @@ namespace coach_bags_selenium
         {
             Link = Link,
             Name = Name,
-            SalePrice = SalePrice,
+            SalePrice = SalePrice.Value,
             Price = Price,
             Savings = Savings,
             Id = Id,
