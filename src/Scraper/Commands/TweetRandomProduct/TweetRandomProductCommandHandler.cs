@@ -11,7 +11,7 @@ using Tweetinvi.Parameters;
 
 namespace coach_bags_selenium
 {
-    public class TweetRandomProductCommandHandler : IRequestHandler<TweetRandomProductCommand, Result>
+    public class TweetRandomProductCommandHandler : IRequestHandler<TweetRandomProductCommand>
     {
         private readonly ILogger<TweetRandomProductCommandHandler> _logger;
         private readonly DataFactory _data;
@@ -26,7 +26,7 @@ namespace coach_bags_selenium
             _data = data;
             _imageProcessor = imageProcessor;
         }
-        public async Task<Result> Handle(TweetRandomProductCommand request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(TweetRandomProductCommand request, CancellationToken cancellationToken)
         {
             var db = _data.GetDatabaseContext();
             var twitterOptions = request.TwitterOptions;
@@ -53,7 +53,7 @@ namespace coach_bags_selenium
 
             await Task.Delay(0); // naughty!
 
-            return Result.Ok();
+            return Unit.Value;
         }
 
         private static IEnumerable<IMedia> UploadImagesToTwitter(IEnumerable<byte[]> images)
