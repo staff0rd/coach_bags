@@ -26,7 +26,6 @@ namespace coach_bags_selenium
         {
             var db = _data.GetDatabaseContext();
             var productsWithoutImages = db.Products
-                .Where(p => p.Category == request.Category)
                 .Where(p => p.LastPostedUtc.HasValue)
                 .Where(p => p.Images == null)
                 .ToList();

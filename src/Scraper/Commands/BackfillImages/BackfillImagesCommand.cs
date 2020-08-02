@@ -8,8 +8,6 @@ namespace coach_bags_selenium
     [Command("backfill")]
     public class BackfillImagesCommand : IRequest
     {
-        public Category Category { get; set; }
-
         public async Task OnExecute(IMediator mediator)
         {
             await mediator.Send(this);
