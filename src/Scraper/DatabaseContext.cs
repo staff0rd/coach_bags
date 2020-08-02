@@ -22,7 +22,8 @@ namespace coach_bags_selenium.Data
         public DbSet<Product> Products { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder.UseNpgsql(_connectionString);
+            => optionsBuilder.UseNpgsql(_connectionString)
+                .UseSnakeCaseNamingConvention();
 
         public Data.Product ChooseProductToTweet(Category category, DateTime now)
         {
