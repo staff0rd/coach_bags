@@ -39,7 +39,7 @@ namespace coach_bags_selenium
             {
                 product.LastPostedUtc = request.Since;
                 var images = await _mediator.Send(new GetImagesCommand{ Category = request.Category, SourceUrl = product.Image});
-
+                product.Images = images.S3Uploaded.ToArray();
                 var text = $"{product.Brand} - {product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
 
                 Auth.SetUserCredentials(_twitterOptions.ConsumerKey, _twitterOptions.ConsumerSecret, _twitterOptions.AccessToken, _twitterOptions.AccessTokenSecret);

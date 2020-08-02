@@ -17,6 +17,8 @@ using Amazon.S3;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 using MediatR;
+using Amazon;
+using Microsoft.Extensions.Options;
 
 [assembly: UserSecretsIdAttribute("35c1247a-0256-4d98-b811-eb58b6162fd7")]
 namespace coach_bags_selenium
@@ -36,6 +38,10 @@ namespace coach_bags_selenium
                         .AddMediatR(typeof(Program).Assembly)
                         .Configure<S3Options>(hostContext.Configuration.GetSection("S3"))
                         .Configure<TwitterOptions>(hostContext.Configuration.GetSection("Twitter"))
+                        .AddTransient<IAmazonS3>(p => {
+                            var options = p.GetService<IOptions<S3Options>>().Value;
+                            return new AmazonS3Client(options.AccessKey, options.Secret, RegionEndpoint.USWest2);
+                        })
                         .AddTransient<DataFactory>();
                 });
 

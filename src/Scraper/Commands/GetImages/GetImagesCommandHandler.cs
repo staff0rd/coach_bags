@@ -5,10 +5,13 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Amazon.S3;
+using Amazon.S3.Transfer;
 using coach_bags_selenium.Data;
 using Flurl.Http;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -17,13 +20,22 @@ namespace coach_bags_selenium
 {
     public class GetImagesCommandHandler : IRequestHandler<GetImagesCommand, GetImagesCommandResult>
     {
-        public GetImagesCommandHandler(ILogger<GetImagesCommandHandler> logger)
+        const string LOCAL_DIRECTORY = "download";
+        private readonly ILogger<GetImagesCommandHandler> _logger;
+        private readonly IAmazonS3 _s3;
+        private readonly DateTime _now;
+        private readonly S3Options _s3Options;
+
+        public GetImagesCommandHandler(
+            ILogger<GetImagesCommandHandler> logger,
+            IOptions<S3Options> s3Options,
+            IAmazonS3 s3)
         {
             _logger = logger;
+            _s3 = s3;
+            _now = DateTime.UtcNow;
+            _s3Options = s3Options.Value;
         }
-        
-        const string DIRECTORY = "download";
-        private readonly ILogger<GetImagesCommandHandler> _logger;
 
         public async Task<GetImagesCommandResult> Handle(GetImagesCommand request, CancellationToken cancellationToken)
         {
@@ -43,7 +55,8 @@ namespace coach_bags_selenium
             };
 
             var twitterImages = twitterSources
-                .Select(p => GetImage(p, size))
+                .Select(async (p) => await GetImage(p, size))
+                .Select(p => p.Result)
                 .ToList();
 
             return new GetImagesCommandResult
@@ -60,7 +73,7 @@ namespace coach_bags_selenium
             var now = DateTime.UtcNow;
             foreach (var source in sources)
             {
-                var name = $"{now:yyyyMMdd-HHmm}-{index}.jpg";
+                var name = $"{now:HHmm}-{index}.jpg";
                 var fileName = await Download(source, name);
                 if (fileName != null)
                     downloaded.Add(fileName);
@@ -71,18 +84,26 @@ namespace coach_bags_selenium
             return downloaded;
         }
 
-        private async Task<string> Download(string source, string downloadedFileName)
+        private async Task<string> Download(string source, string downloadFileName)
         {
             try
             {
-                await source.DownloadFileAsync(DIRECTORY, downloadedFileName);
+                await source.DownloadFileAsync(LOCAL_DIRECTORY, downloadFileName);
                 _logger.LogInformation($"Downloaded {source}");
-                return downloadedFileName;
+                return await S3Upload(Path.Combine(LOCAL_DIRECTORY, downloadFileName));
             }
             catch
             {
                 return null;
             }
+        }
+
+        private async Task<string> S3Upload(string filePath)
+        {
+            var fileName = Path.GetFileName(filePath);
+            var s3Path = Path.Combine(_s3Options.Directory, $"{_now:yyyy/MM/dd}/{fileName}");
+            await new TransferUtility(_s3).UploadAsync(filePath, _s3Options.Bucket, s3Path);
+            return s3Path;
         }
 
         private IEnumerable<string> GetSources(Category category, string sourceUrl)
@@ -100,18 +121,19 @@ namespace coach_bags_selenium
             }
         }
 
-        private byte[] GetImage(string src, Size size)
+        private async Task<byte[]> GetImage(string src, Size size)
         {
-            var imageFilePath = PrepareImageForTwitter(src, size);
-            byte[] image = File.ReadAllBytes(imageFilePath);
+            var imageFilePath = await PrepareImageForTwitter(src, size);
+            byte[] image = File.ReadAllBytes(Path.Combine(LOCAL_DIRECTORY, Path.GetFileName(imageFilePath)));
             return image;
         }
 
-        private string PrepareImageForTwitter(string file, Size size)
+        private async Task<string> PrepareImageForTwitter(string file, Size size)
         {
-            var outputPath = Path.Combine(DIRECTORY, file.Replace(".jpg", "-twitter.jpg"));
+            file = Path.GetFileName(file);
+            var outputPath = Path.Combine(LOCAL_DIRECTORY, file).Replace(".jpg", "-twitter.jpg");
             using (var newImage = new Image<Rgba32>(size.Width, size.Height))
-            using (Image img = Image.Load(Path.Combine(DIRECTORY, file)))
+            using (Image img = Image.Load(Path.Combine(LOCAL_DIRECTORY, file)))
             {
                 img.Mutate(i =>
                 {
@@ -141,7 +163,7 @@ namespace coach_bags_selenium
                 newImage.Save(outputPath);
             }
             
-            return outputPath;
+            return await S3Upload(outputPath);
         }
     }
 }

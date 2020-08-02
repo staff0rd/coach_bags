@@ -20,5 +20,6 @@ namespace coach_bags_selenium.Data
         public DateTime CreatedUtc { get; set; }
         public string Image { get; set; }
         public Category Category { get; set; }
+        public string[] Images {get; set;}
     }
 }

@@ -6,5 +6,7 @@ namespace coach_bags_selenium
     {
         public string Secret { get; set; }
         public string AccessKey { get; set; }
+        public string Bucket { get; set; }
+        public string Directory { get; set; }
     }
 }
