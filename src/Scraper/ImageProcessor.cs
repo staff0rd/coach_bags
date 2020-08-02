@@ -11,64 +11,61 @@ namespace coach_bags_selenium
 {
     public class ImageProcessor
     {
-        private Size _size;
-
-        public IEnumerable<byte[]> GetImages(Category category, Product product)
+        public IEnumerable<byte[]> GetImages(Category category, string sourceUrl)
         {
-            _size = category switch {
+            var size = category switch {
                 Category.CoachBags => new Size (1200, 628),
                 Category.FwrdBags => new Size (2400, 2400),
                 _ => new Size (2400, 1256)
             };
 
-            var src = product.Image;
             if (category == Category.FwrdDresses || category == Category.FwrdBags)
             {
-                yield return GetImage(Regex.Replace(src, @"_V\d\.jpg", @"_V1.jpg"));
-                yield return GetImage(Regex.Replace(src, @"_V\d\.jpg", @"_V2.jpg"));
+                yield return GetImage(Regex.Replace(sourceUrl, @"_V\d\.jpg", @"_V1.jpg"), size);
+                yield return GetImage(Regex.Replace(sourceUrl, @"_V\d\.jpg", @"_V2.jpg"), size);
                 if (category == Category.FwrdDresses)
-                    yield return GetImage(Regex.Replace(src, @"_V\d\.jpg", @"_V3.jpg"));
+                    yield return GetImage(Regex.Replace(sourceUrl, @"_V\d\.jpg", @"_V3.jpg"), size);
             } else
-                yield return GetImage(src);
+                yield return GetImage(sourceUrl, size);
         }
 
-        private byte[] GetImage(string src)
+        private byte[] GetImage(string src, Size size)
         {
             var fileName = "image.jpg";
             var directory = "download";
             src.DownloadFileAsync(directory, fileName).Wait();
-            var imageFilePath = PrepareImage(directory, fileName);
+            var imageFilePath = PrepareImage(directory, fileName, size);
             byte[] image = File.ReadAllBytes(imageFilePath);
             return image;
         }
 
-        private string PrepareImage(string directory, string file)
+        private string PrepareImage(string directory, string file, Size size)
         {
             var outputPath = Path.Combine(directory, "output.jpg");
-            using (var newImage = new Image<Rgba32>(_size.Width, _size.Height))
+            using (var newImage = new Image<Rgba32>(size.Width, size.Height))
             using (Image img = Image.Load(Path.Combine(directory, file)))
             {
                 img.Mutate(i =>
                 {
-                    i.Resize(0, _size.Height);
+                    i.Resize(0, size.Height);
                 });
                 var leftStrip = img.Clone(i => {
-                    i.Crop(1, _size.Height);
+                    i.Crop(1, size.Height);
                 });
                 var rightStrip = img.Clone(i => {
                     var size = i.GetCurrentSize();
-                    i.Crop(new Rectangle(size.Width-1, 0, 1, _size.Height));
+                    i.Crop(new Rectangle(size.Width-1, 0, 1, size.Height));
                 });
                 newImage.Mutate(i => {
                     var width = img.Width;
-                    var gutterWidth = _size.Width/2-width/2;
+                    var gutterWidth = size.Width/2-width/2;
                     i.DrawImage(img, new Point(gutterWidth, 0), 1);
 
                     // fill gutters
                     for (int ix = 0; ix < gutterWidth; ix++)
                     {
                         i.DrawImage(leftStrip, new Point(ix, 0), 1);
-                        if (ix + width + gutterWidth < _size.Width)
+                        if (ix + width + gutterWidth < size.Width)
                             i.DrawImage(rightStrip, new Point(ix + width + gutterWidth, 0), 1);
                     }
                 });

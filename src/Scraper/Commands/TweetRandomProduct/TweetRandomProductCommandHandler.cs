@@ -35,7 +35,7 @@ namespace coach_bags_selenium
             if (product != null)
             {
                 product.LastPostedUtc = request.Since;
-                var images = _imageProcessor.GetImages(request.Category, product).ToList();
+                var images = _imageProcessor.GetImages(request.Category, product.Image).ToList();
 
                 var text = $"{product.Brand} - {product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
 
