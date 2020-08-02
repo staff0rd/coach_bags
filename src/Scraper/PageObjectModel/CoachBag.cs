@@ -22,6 +22,7 @@ namespace coach_bags_selenium
         {
             Link = Link,
             Name = Name,
+            Brand = "Coach",
             SalePrice = SalePrice,
             Price = Price,
             Savings = Savings,
