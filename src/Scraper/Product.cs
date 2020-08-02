@@ -7,6 +7,7 @@ namespace coach_bags_selenium.Data
     public class Product
     {
         public string Link { get; set; }
+        public string Brand { get; set; }
         public string Name { get; set; }
         public decimal SalePrice { get; set; }
         public decimal Price { get; set; }
