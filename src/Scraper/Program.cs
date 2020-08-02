@@ -73,7 +73,7 @@ namespace coach_bags_selenium
                     product.LastPostedUtc = now;
                     var images = imageProcessor.GetImages(category, product).ToList();
 
-                    var text = $"{product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
+                    var text = $"{product.Brand} - {product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
 
                     Auth.SetUserCredentials(twitterOptions.ConsumerKey, twitterOptions.ConsumerSecret, twitterOptions.AccessToken, twitterOptions.AccessTokenSecret);
                     var media = UploadImagesToTwitter(images);
