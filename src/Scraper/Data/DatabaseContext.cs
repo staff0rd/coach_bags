@@ -65,6 +65,7 @@ namespace coach_bags_selenium.Data
                     existing.Savings = product.Savings;
                     existing.LastUpdatedUtc = now;
                     existing.Image = product.Image;
+                    existing.Brand = product.Brand;
                 }
             }
             Console.WriteLine("Saving...");

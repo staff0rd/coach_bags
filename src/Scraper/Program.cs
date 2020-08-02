@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using coach_bags_selenium.Data;
 using Microsoft.EntityFrameworkCore;
@@ -8,10 +6,6 @@ using OpenQA.Selenium.Chrome;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration.UserSecrets;
-using Tweetinvi;
-using Tweetinvi.Parameters;
-using Tweetinvi.Models;
-using AngleSharp;
 using Microsoft.Extensions.Logging;
 using Amazon.S3;
 using McMaster.Extensions.CommandLineUtils;
@@ -24,7 +18,11 @@ using Microsoft.Extensions.Options;
 namespace coach_bags_selenium
 {
 
-    [Subcommand(typeof(GenerateContent), typeof(GetImagesCommand), typeof(ScrapeCommand))]
+    [Subcommand(
+        typeof(GenerateContent),
+        typeof(GetImagesCommand),
+        typeof(BackfillImagesCommand),
+        typeof(ScrapeCommand))]
     class Program
     {
         static Task Main(string[] args) => CreateHostBuilder().RunCommandLineApplicationAsync<Program>(args);

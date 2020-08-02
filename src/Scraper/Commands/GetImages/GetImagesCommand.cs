@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using coach_bags_selenium.Data;
@@ -16,6 +17,7 @@ namespace coach_bags_selenium
         [Option("-s|--source", CommandOptionType.SingleValue)]
         [Required]
         public string SourceUrl { get; set; }
+        public DateTime Now { get; set; } = DateTime.UtcNow;
 
         public async Task OnExecute(IMediator mediator)
         {
