@@ -3,27 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using coach_bags_selenium.Data;
-using Flurl.Http;
 using Microsoft.EntityFrameworkCore;
 using OpenQA.Selenium.Chrome;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration.UserSecrets;
-using System.IO;
 using Tweetinvi;
 using Tweetinvi.Parameters;
 using Tweetinvi.Models;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.PixelFormats;
 using AngleSharp;
-using System.Text.RegularExpressions;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Amazon.S3;
+using McMaster.Extensions.CommandLineUtils;
+
+
 
 [assembly: UserSecretsIdAttribute("35c1247a-0256-4d98-b811-eb58b6162fd7")]
 namespace coach_bags_selenium
 {
+
+    [Subcommand(typeof(GenerateContent))]
     class Program
     {
         static Task Main(string[] args) => CreateHostBuilder().RunCommandLineApplicationAsync<Program>(args);
