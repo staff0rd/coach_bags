@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 namespace coach_bags_selenium
 {
     [Command("scrape")]
-    public class ScrapeCommand : IRequest
+    public class ScrapeCommand : IRequest<Result>
     {
         public int Count { get; set; }
         public Category Category { get; set; }  

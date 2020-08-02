@@ -11,19 +11,16 @@ namespace coach_bags_selenium
 {
     public class ImageProcessor
     {
-        private readonly Size _size;
+        private Size _size;
 
-        public ImageProcessor(Category category)
+        public IEnumerable<byte[]> GetImages(Category category, Product product)
         {
             _size = category switch {
                 Category.CoachBags => new Size (1200, 628),
                 Category.FwrdBags => new Size (2400, 2400),
                 _ => new Size (2400, 1256)
             };
-        }
 
-        public IEnumerable<byte[]> GetImages(Category category, Product product)
-        {
             var src = product.Image;
             if (category == Category.FwrdDresses || category == Category.FwrdBags)
             {

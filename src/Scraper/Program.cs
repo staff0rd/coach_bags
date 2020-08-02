@@ -34,71 +34,49 @@ namespace coach_bags_selenium
                     services
                         .AddTransient<ChromeDriver>(s => ConfigureDriver())
                         .AddMediatR(typeof(Program).Assembly)
+                        .AddTransient<ImageProcessor>()
                         .AddTransient<DataFactory>();
                 });
 
-        private IHostEnvironment _env;
         private Microsoft.Extensions.Configuration.IConfiguration _config;
         private ILogger<Program> _logger;
+        private readonly IMediator _mediator;
+        private readonly DataFactory _data;
 
-        public Program(IHostEnvironment env, Microsoft.Extensions.Configuration.IConfiguration config, ILogger<Program> logger)
+        public Program(
+            Microsoft.Extensions.Configuration.IConfiguration config,
+            ILogger<Program> logger,
+            IMediator mediator,
+            DataFactory data)
         {
-            _env = env;
             _config = config;
             _logger = logger;
+            _mediator = mediator;
+            _data = data;
         }
 
-        public void OnExecute()
+        public async Task OnExecute()
         {
             var twitterOptions = _config.GetSection("Twitter").Get<TwitterOptions>();
-            var count = _config.GetValue<int>("Count");
             var category = Enum.Parse<Category>(_config.GetValue<string>("Category"));
-            var connectionString = _config.GetConnectionString("Postgres");
-            var db = new coach_bags_selenium.Data.DatabaseContext(connectionString);
-            var imageProcessor = new ImageProcessor(category);
-            db.Database.Migrate();
+            var count = _config.GetValue<int>("Count");
+            
+            _data.GetDatabaseContext().Database.Migrate();
 
-            var driver = ConfigureDriver();
+            var now = DateTime.UtcNow;
 
-            try
+            await _mediator.Send(new ScrapeCommand
             {
-                var now = DateTime.UtcNow;
-                var product = db.ChooseProductToTweet(category, now);
-
-                if (product != null)
-                {
-                    product.LastPostedUtc = now;
-                    var images = imageProcessor.GetImages(category, product).ToList();
-
-                    var text = $"{product.Brand} - {product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
-
-                    Auth.SetUserCredentials(twitterOptions.ConsumerKey, twitterOptions.ConsumerSecret, twitterOptions.AccessToken, twitterOptions.AccessTokenSecret);
-                    var media = UploadImagesToTwitter(images);
-                    var tweet = Tweet.PublishTweet(text, new PublishTweetOptionalParameters
-                    {
-                        Medias = media.ToList()
-                    });
-                    _logger.LogInformation($"Tweeted: {text}");
-                    db.SaveChanges();
-                }
-                else
-                    _logger.LogWarning("Nothing new to tweet");
-            }
-            catch (Exception e)
+                Category = category,
+                Count = count,
+            });
+            
+            await _mediator.Send(new TweetRandomProductCommand
             {
-                _logger.LogCritical(e, "Critical exception");
-            }
-            finally
-            {
-                driver?.Quit();
-            }
-        }
-
-
-        private static IEnumerable<IMedia> UploadImagesToTwitter(IEnumerable<byte[]> images)
-        {
-            foreach (var image in images)
-                yield return Upload.UploadBinary(image);
+                Category = category,
+                Since = now,
+                TwitterOptions = twitterOptions,
+            });
         }
 
         private static ChromeDriver ConfigureDriver()

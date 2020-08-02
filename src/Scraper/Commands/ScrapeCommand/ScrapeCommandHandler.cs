@@ -13,7 +13,7 @@ using OpenQA.Selenium.Chrome;
 
 namespace coach_bags_selenium
 {
-    public class ScrapeCommandHandler : IRequestHandler<ScrapeCommand>
+    public class ScrapeCommandHandler : IRequestHandler<ScrapeCommand, Result>
     {
         private readonly DataFactory _data;
         private readonly ChromeDriver _driver;
@@ -29,7 +29,7 @@ namespace coach_bags_selenium
             _logger = logger;
         }
 
-        public async Task<Unit> Handle(ScrapeCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(ScrapeCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -43,14 +43,15 @@ namespace coach_bags_selenium
             }
             catch (Exception e)
             {
-                _logger.LogCritical(e, "Critical exception");
+                _logger.LogError(e, "Failed");
+                return Result.Error(e.Message);
             }
             finally
             {
                 _driver?.Quit();
             }
 
-            return Unit.Value;
+            return Result.Ok();
         }
 
         private IEnumerable<Product> GetCoachBags(int count)
