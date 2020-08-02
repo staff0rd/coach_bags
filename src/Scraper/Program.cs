@@ -34,6 +34,8 @@ namespace coach_bags_selenium
                     services
                         .AddTransient<ChromeDriver>(s => ConfigureDriver())
                         .AddMediatR(typeof(Program).Assembly)
+                        .Configure<S3Options>(hostContext.Configuration.GetSection("S3"))
+                        .Configure<TwitterOptions>(hostContext.Configuration.GetSection("Twitter"))
                         .AddTransient<DataFactory>();
                 });
 
@@ -56,7 +58,6 @@ namespace coach_bags_selenium
 
         public async Task OnExecute()
         {
-            var twitterOptions = _config.GetSection("Twitter").Get<TwitterOptions>();
             var category = Enum.Parse<Category>(_config.GetValue<string>("Category"));
             var count = _config.GetValue<int>("Count");
             
@@ -74,7 +75,6 @@ namespace coach_bags_selenium
             {
                 Category = category,
                 Since = now,
-                TwitterOptions = twitterOptions,
             });
         }
 
