@@ -10,11 +10,11 @@ namespace coach_bags_selenium
 {
     [Command("generate")]
     public class GenerateContent {
-        private readonly IConfiguration _config;
+        private readonly DataFactory _data;
 
-        public GenerateContent(IConfiguration config)
+        public GenerateContent(DataFactory data)
         {
-            _config = config;
+            _data = data;
         }
 
         class Linked : Data.Product {
@@ -36,11 +36,7 @@ namespace coach_bags_selenium
 
         public void OnExecute(IConfiguration config)
         {
-            var connectionString = _config.GetConnectionString("Postgres");
-            var db = new coach_bags_selenium.Data.DatabaseContext(connectionString);
-            Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
-
-            using (var connection = new NpgsqlConnection(connectionString))
+            using (var connection = _data.GetConnection())
             {
                 connection.Query<Linked>(QUERY)
                     .ToList()

@@ -15,14 +15,14 @@ using AngleSharp;
 using Microsoft.Extensions.Logging;
 using Amazon.S3;
 using McMaster.Extensions.CommandLineUtils;
-
-
+using Microsoft.Extensions.DependencyInjection;
+using MediatR;
 
 [assembly: UserSecretsIdAttribute("35c1247a-0256-4d98-b811-eb58b6162fd7")]
 namespace coach_bags_selenium
 {
 
-    [Subcommand(typeof(GenerateContent))]
+    [Subcommand(typeof(GenerateContent), typeof(GenerateImages), typeof(ScrapeCommand))]
     class Program
     {
         static Task Main(string[] args) => CreateHostBuilder().RunCommandLineApplicationAsync<Program>(args);
@@ -31,7 +31,10 @@ namespace coach_bags_selenium
             Host.CreateDefaultBuilder()
                 .ConfigureServices((hostContext, services) =>
                 {
-                    
+                    services
+                        .AddTransient<ChromeDriver>(s => ConfigureDriver())
+                        .AddMediatR(typeof(Program).Assembly)
+                        .AddTransient<DataFactory>();
                 });
 
         private IHostEnvironment _env;
@@ -59,14 +62,8 @@ namespace coach_bags_selenium
 
             try
             {
-                var products = category switch
-                {
-                    Category.CoachBags => GetCoachBags(driver, count),
-                    _ => GetFwrdProducts(driver, category).Result,
-                };
-                
-                var now = db.Save(products);
-                var product = db.ChooseProductToTweet(products.First().Category, now);
+                var now = DateTime.UtcNow;
+                var product = db.ChooseProductToTweet(category, now);
 
                 if (product != null)
                 {
@@ -84,7 +81,7 @@ namespace coach_bags_selenium
                     _logger.LogInformation($"Tweeted: {text}");
                     db.SaveChanges();
                 }
-                else 
+                else
                     _logger.LogWarning("Nothing new to tweet");
             }
             catch (Exception e)
@@ -97,57 +94,11 @@ namespace coach_bags_selenium
             }
         }
 
+
         private static IEnumerable<IMedia> UploadImagesToTwitter(IEnumerable<byte[]> images)
         {
             foreach (var image in images)
                 yield return Upload.UploadBinary(image);
-        }
-
-        private IEnumerable<Product> GetCoachBags(ChromeDriver driver, int count)
-        {
-            var url = $"https://coachaustralia.com/on/demandware.store/Sites-au-coach-Site/en_AU/Search-UpdateGrid?cgid=sale-womens_sale-bags&start=0&sz={count}";
-            driver.Navigate().GoToUrl(url);
-
-            var products =
-                driver.FindElementsByClassName("product")
-                .Select(p => new CoachBag(p).AsEntity);
-            _logger.LogInformation($"Found {products.Count()} products");
-            return products;
-        }
-
-        private async Task<IEnumerable<Product>> GetFwrdProducts(ChromeDriver driver, Category category)
-        {
-            string url = GetFwrdUrl(category);
-            driver.Navigate().GoToUrl(url);
-
-            var text = driver.PageSource;
-            var pre = driver.FindElementByCssSelector("pre").Text;
-            var config = AngleSharp.Configuration.Default;
-            var context = BrowsingContext.New(config);
-            var document = await context.OpenAsync(req => req.Content(pre));
-            var ps = document.QuerySelectorAll(".products-grid__item");
-
-            _logger.LogInformation("Parsing");
-
-            var products = ps
-                .Select(p => new ForwardProduct(p))
-                .Where(p => p.SalePrice.HasValue)
-                .Select(p => p.AsEntity(category))
-                .Where(p => p.SalePrice < 1000)
-                .ToList();
-
-            _logger.LogInformation($"Found {products.Count()} products");
-            return products;
-        }
-
-        private static string GetFwrdUrl(Category category)
-        {
-            return category switch {
-                Category.FwrdShoes => "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3FpageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-shoes%2Fba4e3d%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DShoes&currentPageSortBy=newestMarkdown&useLargerImages=true&outfitViewSession=false&showBagSize=false&lookfwrd=false",
-                Category.FwrdDresses => "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3Fnavsrc%3Dleft%26pageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-dresses%2F28a4b1%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DDresses&currentPageSortBy=newestMarkdown&useLargerImages=false&outfitViewSession=false&showBagSize=false&lookfwrd=false",
-                Category.FwrdBags => "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3Fnavsrc%3Dleft%26pageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-bags%2F01ef40%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DBags&currentPageSortBy=newestMarkdown&useLargerImages=true&outfitViewSession=false&showBagSize=false&lookfwrd=false",
-                _ => throw new ArgumentException(nameof(category))
-            };
         }
 
         private static ChromeDriver ConfigureDriver()
