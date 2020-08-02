@@ -15,16 +15,16 @@ namespace coach_bags_selenium
     {
         private readonly ILogger<TweetRandomProductCommandHandler> _logger;
         private readonly DataFactory _data;
-        private readonly ImageProcessor _imageProcessor;
+        private readonly IMediator _mediator;
 
         public TweetRandomProductCommandHandler(
             ILogger<TweetRandomProductCommandHandler> logger,
-            ImageProcessor imageProcessor,
+            IMediator mediator,
             DataFactory data)
         {
             _logger = logger;   
             _data = data;
-            _imageProcessor = imageProcessor;
+            _mediator = mediator;
         }
         public async Task<Unit> Handle(TweetRandomProductCommand request, CancellationToken cancellationToken)
         {
@@ -35,12 +35,13 @@ namespace coach_bags_selenium
             if (product != null)
             {
                 product.LastPostedUtc = request.Since;
-                var images = _imageProcessor.GetImages(request.Category, product.Image).ToList();
+                var images = await _mediator.Send(new GetImagesCommand{ Category = request.Category, SourceUrl = product.Image});
+
 
                 var text = $"{product.Brand} - {product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
 
                 Auth.SetUserCredentials(twitterOptions.ConsumerKey, twitterOptions.ConsumerSecret, twitterOptions.AccessToken, twitterOptions.AccessTokenSecret);
-                var media = UploadImagesToTwitter(images);
+                var media = UploadImagesToTwitter(images.ForTwitter);
                 var tweet = Tweet.PublishTweet(text, new PublishTweetOptionalParameters
                 {
                     Medias = media.ToList()

@@ -22,7 +22,7 @@ using MediatR;
 namespace coach_bags_selenium
 {
 
-    [Subcommand(typeof(GenerateContent), typeof(GenerateImages), typeof(ScrapeCommand))]
+    [Subcommand(typeof(GenerateContent), typeof(GetImagesCommand), typeof(ScrapeCommand))]
     class Program
     {
         static Task Main(string[] args) => CreateHostBuilder().RunCommandLineApplicationAsync<Program>(args);
@@ -34,7 +34,6 @@ namespace coach_bags_selenium
                     services
                         .AddTransient<ChromeDriver>(s => ConfigureDriver())
                         .AddMediatR(typeof(Program).Assembly)
-                        .AddTransient<ImageProcessor>()
                         .AddTransient<DataFactory>();
                 });
 
