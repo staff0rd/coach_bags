@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 /*
-
+https://github.com/efcore/EFCore.NamingConventions/issues/1
 Must run before:
 
 alter table "__EFMigrationsHistory"
