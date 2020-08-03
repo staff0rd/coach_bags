@@ -19,9 +19,9 @@ namespace coach_bags_selenium
 {
 
     [Subcommand(
-        typeof(GenerateContent),
         typeof(GetImagesCommand),
         typeof(BackfillImagesCommand),
+        typeof(ExportProductsCommand),
         typeof(ScrapeCommand))]
     class Program
     {
