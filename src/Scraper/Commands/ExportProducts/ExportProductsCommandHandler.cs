@@ -1,18 +1,13 @@
-using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using McMaster.Extensions.CommandLineUtils;
 using MediatR;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 
 namespace coach_bags_selenium
 {
@@ -28,20 +23,6 @@ namespace coach_bags_selenium
             _logger = logger;
         }
 
-        class LinkedProduct : Data.Product
-        {
-            const string FORMAT = "yyyyMMdd-HHmm";
-
-            [JsonIgnore]
-            public DateTime? PrevPostedUtc { get; set; }
-
-            [JsonIgnore]
-            public string NextPage => PrevPostedUtc?.ToString(FORMAT);
-
-            [JsonIgnore]
-            public string PageName => LastPostedUtc?.ToString(FORMAT);
-        }
-
         private string QUERY = @"
             with cte as (
                 SELECT * FROM products
@@ -55,13 +36,6 @@ namespace coach_bags_selenium
             FROM cte
             ORDER BY last_posted_utc DESC";
 
-        class Page
-        {
-            [JsonIgnore]
-            public string Name { get; set; }
-            public LinkedProduct[] Products { get; set; }
-            public string NextPage => Products.Last().NextPage;
-        }
         public async Task<Unit> Handle(ExportProductsCommand request, CancellationToken cancellationToken)
         {
             var pages = new List<Page>();
