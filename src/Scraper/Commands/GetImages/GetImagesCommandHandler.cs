@@ -35,14 +35,16 @@ namespace coach_bags_selenium
             _s3Options = s3Options.Value;
         }
 
+        private Size GetTwitterSize(Category category, int count) => category switch {
+            Category.CoachBags when count == 2 => new Size (1200, 1200),
+            Category.FwrdBags when count == 2 => new Size (1440, 1440),
+            Category.FwrdShoes when count == 2 => new Size (1440, 1440),
+            Category.FwrdDresses when count == 2 => new Size (1440, 1440),
+            _ => new Size (2400, 1256)
+        };
+
         public async Task<GetImagesCommandResult> Handle(GetImagesCommand request, CancellationToken cancellationToken)
         {
-            var size = request.Category switch {
-                Category.CoachBags => new Size (1200, 628),
-                Category.FwrdBags => new Size (2400, 2400),
-                _ => new Size (2400, 1256)
-            };
-
             var sources = GetSources(request.Category, request.SourceUrl);
 
             sources = await DownloadSources(sources, request.Now);
@@ -51,6 +53,8 @@ namespace coach_bags_selenium
                 Category.FwrdDresses => sources.Take(3),
                 _ => sources.Take(2)
             };
+
+            var size = GetTwitterSize(request.Category, twitterSources.Count());
 
             var twitterImages = twitterSources
                 .Select(async (p) => await GetImage(p, size, request.Now))
@@ -108,7 +112,10 @@ namespace coach_bags_selenium
         {
             if (category == Category.CoachBags)
             {
-                yield return sourceUrl;
+                for (int i = 1 ; i < 10 ; i++)
+                {
+                    yield return Regex.Replace(sourceUrl, @"_(\d)\.jpg\?sw=(\d+)&sh=(\d+)", $"_{i}.jpg?sw=1200&sh=1200");
+                }
             } else
             {
                 for (int i = 1; i < 10 ; i++)
