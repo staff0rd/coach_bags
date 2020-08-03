@@ -102,7 +102,7 @@ namespace coach_bags_selenium
         private async Task<string> S3Upload(string filePath, DateTime now)
         {
             var fileName = Path.GetFileName(filePath);
-            var s3Path = Path.Combine(_s3Options.Directory, $"{now:yyyy/MM/dd}/{fileName}");
+            var s3Path = Path.Combine(_s3Options.ImageDirectory, $"{now:yyyy/MM/dd}/{fileName}");
             await new TransferUtility(_s3).UploadAsync(filePath, _s3Options.Bucket, s3Path);
             _logger.LogInformation($"Uploaded {s3Path} to S3");
             return s3Path;
