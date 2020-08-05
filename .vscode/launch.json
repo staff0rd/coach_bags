@@ -10,16 +10,12 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/src/Scraper/bin/Debug/netcoreapp3.1/coach_bags_selenium.dll",
-            "args": [ "tweet", "-p", "-c", "FwrdShoes" ],
+            "args": [ "backfill", "-o",],
             "cwd": "${workspaceFolder}/src",
             "console": "internalConsole",
             "stopAtEntry": false,
             "env": {
                 "DOTNET_ENVIRONMENT": "Development",
-                "ConnectionStrings:Postgres": "User ID=postgres;Password=example;Host=localhost;Database=coach_bags;",
-                "Count": "30",
-                "S3:Bucket": "bags.staffordwilliams.com",
-                "S3:Directory": "local",
                 "Category": "FwrdShoes"
             }
         },
