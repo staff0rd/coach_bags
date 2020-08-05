@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 
 function App() {
-  const root = "";
+  const root = "remote";
   const [products, setProducts] = useState([]); 
 
   useEffect(() => {
@@ -22,7 +22,7 @@ function App() {
         <div>
           <h1>{p.brand} - {p.name}</h1>
           { p.images.map(img => (
-              <img style={{width: 100}} src={`${root}/${img}`} alt={`${p.brand} - ${p.name}`} />
+              <img style={{width: 100}} src={`/${img}`} alt={`${p.brand} - ${p.name}`} />
           ))}
         </div>
       ))}
