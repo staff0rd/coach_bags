@@ -5,7 +5,7 @@ using MediatR;
 namespace coach_bags_selenium
 {
     [Command("tweet")]
-    public class ScrapeAndTweetCommand : IRequest
+    public class ScrapeAndTweetCommand : Request
     {
         [Option("-c|--category", CommandOptionType.SingleValue)]
         public Category Category { get; set; }

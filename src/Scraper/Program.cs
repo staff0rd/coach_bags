@@ -22,6 +22,7 @@ namespace coach_bags_selenium
         typeof(GetImagesCommand),
         typeof(BackfillImagesCommand),
         typeof(ExportProductsCommand),
+        typeof(ScrapeAndTweetCommand),
         typeof(ScrapeCommand))]
     class Program
     {

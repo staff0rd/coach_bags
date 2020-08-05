@@ -53,11 +53,11 @@ namespace coach_bags_selenium
                     _logger.LogInformation($"Tweeted: {text}");
                 }
                 db.SaveChanges();
+
+                await _mediator.Send(new ExportProductsCommand());
             }
             else
                 _logger.LogWarning("Nothing new to tweet");
-
-            await Task.Delay(0); // naughty!
 
             return Unit.Value;
         }

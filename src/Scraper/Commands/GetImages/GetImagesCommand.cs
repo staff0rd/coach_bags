@@ -8,7 +8,7 @@ using MediatR;
 namespace coach_bags_selenium
 {
     [Command("images")]
-    public class GetImagesCommand : IRequest<GetImagesCommandResult>
+    public class GetImagesCommand : Request<GetImagesCommandResult>
     {
         [Option("-c|--category", CommandOptionType.SingleValue)]
         [Required]
@@ -18,10 +18,5 @@ namespace coach_bags_selenium
         [Required]
         public string SourceUrl { get; set; }
         public DateTime Now { get; set; } = DateTime.UtcNow;
-
-        public async Task OnExecute(IMediator mediator)
-        {
-            await mediator.Send(this);
-        }
     }
 }

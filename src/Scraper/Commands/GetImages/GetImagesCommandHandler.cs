@@ -5,13 +5,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon.S3;
-using Amazon.S3.Transfer;
 using coach_bags_selenium.Data;
 using Flurl.Http;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -22,17 +19,14 @@ namespace coach_bags_selenium
     {
         const string LOCAL_DIRECTORY = "download";
         private readonly ILogger<GetImagesCommandHandler> _logger;
-        private readonly IAmazonS3 _s3;
-        private readonly S3Options _s3Options;
+        private readonly IMediator _mediator;
 
         public GetImagesCommandHandler(
             ILogger<GetImagesCommandHandler> logger,
-            IOptions<S3Options> s3Options,
-            IAmazonS3 s3)
+            IMediator mediator)
         {
             _logger = logger;
-            _s3 = s3;
-            _s3Options = s3Options.Value;
+            _mediator = mediator;
         }
 
         private Size GetTwitterSize(Category category, int count) => category switch {
@@ -99,15 +93,6 @@ namespace coach_bags_selenium
             }
         }
 
-        private async Task<string> S3Upload(string filePath, DateTime now)
-        {
-            var fileName = Path.GetFileName(filePath);
-            var s3Path = Path.Combine(_s3Options.ImageDirectory, $"{now:yyyy/MM/dd}/{fileName}");
-            await new TransferUtility(_s3).UploadAsync(filePath, _s3Options.Bucket, s3Path);
-            _logger.LogInformation($"Uploaded {s3Path} to S3");
-            return s3Path;
-        }
-
         private IEnumerable<string> GetSources(Category category, string sourceUrl)
         {
             if (category == Category.CoachBags)
@@ -169,6 +154,17 @@ namespace coach_bags_selenium
             }
             
             return await S3Upload(outputPath, timestamp);
+        }
+
+        private async Task<string> S3Upload(string filePath, DateTime timestamp)
+        {
+            var fileName = Path.GetFileName(filePath);
+            var s3FileName = $"{timestamp:yyyy/MM/dd}/{fileName}";
+            return await _mediator.Send(new S3UploadCommand {
+                SourceFilePath = filePath,
+                TargetDirectory = "images",
+                TargetFileName = s3FileName,
+            });
         }
     }
 }

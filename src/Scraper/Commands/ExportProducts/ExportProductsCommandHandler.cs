@@ -11,16 +11,21 @@ using Microsoft.Extensions.Logging;
 
 namespace coach_bags_selenium
 {
-    [Command("generate")]
+    [Command("export")]
     public class ExportProductsCommandHandler : IRequestHandler<ExportProductsCommand> {
         private readonly DataFactory _data;
         private readonly ILogger<ExportProductsCommandHandler> _logger;
+        private readonly IMediator _mediator;
         const string LOCAL_DIRECTORY = "json";
 
-        public ExportProductsCommandHandler(DataFactory data, ILogger<ExportProductsCommandHandler> logger)
+        public ExportProductsCommandHandler(
+            DataFactory data,
+            ILogger<ExportProductsCommandHandler> logger,
+            IMediator mediator)
         {
             _data = data;
             _logger = logger;
+            _mediator = mediator;
         }
 
         private string QUERY = @"
@@ -75,7 +80,13 @@ namespace coach_bags_selenium
             foreach (var page in pages)
             {
                 var json = JsonSerializer.Serialize(page, options);
-                File.WriteAllText(Path.Combine(LOCAL_DIRECTORY, page.Name), json);
+                var jsonFile = Path.Combine(LOCAL_DIRECTORY, page.Name);
+                File.WriteAllText(jsonFile, json);
+                await _mediator.Send(new S3UploadCommand {
+                    SourceFilePath = jsonFile,
+                    TargetDirectory = "json",
+                    TargetFileName = page.Name,
+                 });
             }
 
             return Unit.Value;
