@@ -8,5 +8,6 @@ namespace coach_bags_selenium
         public string AccessKey { get; set; }
         public string Bucket { get; set; }
         public string Directory { get; set; }
+        public string Url { get; set; }
     }
 }

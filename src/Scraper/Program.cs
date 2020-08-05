@@ -39,7 +39,16 @@ namespace coach_bags_selenium
                         .Configure<TwitterOptions>(hostContext.Configuration.GetSection("Twitter"))
                         .AddTransient<IAmazonS3>(p => {
                             var options = p.GetService<IOptions<S3Options>>().Value;
-                            return new AmazonS3Client(options.AccessKey, options.Secret, RegionEndpoint.USWest2);
+                            var config = new AmazonS3Config
+                            {
+                                RegionEndpoint = RegionEndpoint.USWest2,
+                            };
+                            if (!string.IsNullOrWhiteSpace(options.Url)) // localstack
+                            {
+                                config.ForcePathStyle = true;
+                                config.ServiceURL = options.Url;
+                            }
+                            return new AmazonS3Client(options.AccessKey, options.Secret, config);
                         })
                         .AddTransient<DataFactory>();
                 });

@@ -3,3 +3,4 @@ bin
 download
 .DS_Store
 json
+.localstack
