@@ -1,24 +1,31 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 
 function App() {
+  const root = "";
+  const [products, setProducts] = useState([]); 
+
+  useEffect(() => {
+    async function fetchData() {
+      var response = await fetch(`${root}/json/index.json`);
+      const page1 = await response.json();
+      response = await fetch(`${root}/json/${page1.nextPage}.json`);
+      const page2 = await response.json();
+      setProducts([...page1.products, ...page2.products].slice(0, 12))
+    }
+    fetchData();
+  }, [])
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="App" style={{padding: 15}}>
+      { products.map(p => (
+        <div>
+          <h1>{p.brand} - {p.name}</h1>
+          { p.images.map(img => (
+              <img style={{width: 100}} src={`${root}/${img}`} alt={`${p.brand} - ${p.name}`} />
+          ))}
+        </div>
+      ))}
     </div>
   );
 }
