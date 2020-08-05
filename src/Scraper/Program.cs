@@ -67,19 +67,7 @@ namespace coach_bags_selenium
             
             _data.GetDatabaseContext().Database.Migrate();
 
-            var now = DateTime.UtcNow;
-
-            await _mediator.Send(new ScrapeCommand
-            {
-                Category = category,
-                Count = count,
-            });
-            
-            await _mediator.Send(new TweetRandomProductCommand
-            {
-                Category = category,
-                Since = now,
-            });
+            await _mediator.Send(new ScrapeAndTweetCommand { Category = category, Count = count });
         }
 
         private static ChromeDriver ConfigureDriver()

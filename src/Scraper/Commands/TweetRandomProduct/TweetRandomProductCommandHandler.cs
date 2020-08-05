@@ -42,13 +42,16 @@ namespace coach_bags_selenium
                 product.Images = images.S3Uploaded.ToArray();
                 var text = $"{product.Brand} - {product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
 
-                Auth.SetUserCredentials(_twitterOptions.ConsumerKey, _twitterOptions.ConsumerSecret, _twitterOptions.AccessToken, _twitterOptions.AccessTokenSecret);
-                var media = UploadImagesToTwitter(images.ForTwitter);
-                var tweet = Tweet.PublishTweet(text, new PublishTweetOptionalParameters
+                if (!request.PrepareOnly)
                 {
-                    Medias = media.ToList()
-                });
-                _logger.LogInformation($"Tweeted: {text}");
+                    Auth.SetUserCredentials(_twitterOptions.ConsumerKey, _twitterOptions.ConsumerSecret, _twitterOptions.AccessToken, _twitterOptions.AccessTokenSecret);
+                    var media = UploadImagesToTwitter(images.ForTwitter);
+                    var tweet = Tweet.PublishTweet(text, new PublishTweetOptionalParameters
+                    {
+                        Medias = media.ToList()
+                    });
+                    _logger.LogInformation($"Tweeted: {text}");
+                }
                 db.SaveChanges();
             }
             else
