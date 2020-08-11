@@ -33,7 +33,10 @@ namespace coach_bags_selenium
                 .ConfigureServices((hostContext, services) =>
                 {
                     services
-                        .AddTransient<ChromeDriver>(s => ConfigureDriver())
+                        .AddTransient<ChromeDriver>(s => {
+                            var headless = s.GetRequiredService<IConfiguration>().GetValue<bool>("Headless", true);
+                            return ConfigureDriver(headless);
+                        })
                         .AddMediatR(typeof(Program).Assembly)
                         .Configure<S3Options>(hostContext.Configuration.GetSection("S3"))
                         .Configure<TwitterOptions>(hostContext.Configuration.GetSection("Twitter"))
@@ -80,10 +83,11 @@ namespace coach_bags_selenium
             await _mediator.Send(new ScrapeAndTweetCommand { Category = category, Count = count });
         }
 
-        private static ChromeDriver ConfigureDriver()
+        private static ChromeDriver ConfigureDriver(bool headless)
         {
             var options = new ChromeOptions();
-            options.AddArgument("headless");
+            if (headless)
+                options.AddArgument("headless");
             options.AddArgument("no-sandbox"); // needed to run inside container
 
             var driver = new ChromeDriver(options);
