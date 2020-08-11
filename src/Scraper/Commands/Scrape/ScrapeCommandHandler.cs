@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +37,7 @@ namespace coach_bags_selenium
                 var products = request.Category switch
                 {
                     Category.CoachBags => GetCoachBags(request.Count),
+                    Category.OutnetCoats => await GetOutnetCoats(request.Count),
                     _ => await GetFwrdProducts(request.Category),
                 };
 
@@ -47,6 +49,42 @@ namespace coach_bags_selenium
             }
 
             return Unit.Value;
+        }
+
+        private async Task<IEnumerable<Product>> GetOutnetCoats(int count)
+        {
+            var url = "https://www.theoutnet.com/en-au/shop/clothing/coats?pageNumber=1";
+            _driver.Navigate().GoToUrl(url);
+
+            var sw = Stopwatch.StartNew();
+
+            var config = Configuration.Default;
+            var context = BrowsingContext.New(config);
+            var document = await context.OpenAsync(req => req.Content(_driver.PageSource));
+            var ps = document.QuerySelectorAll("[id^=pid]");
+
+            var products2 = ps
+                .Select(p => new AngleOutnetProduct(p))
+                .Where(p => p.HasPrice)
+                .Select(p => p.AsEntity)
+                .ToList();
+
+            Console.WriteLine($"AngleSharp took {sw.Elapsed} to extract {products2.Count} items");
+
+            sw = Stopwatch.StartNew();
+
+            var products =
+                _driver.FindElementsByCssSelector("[id^=pid]")
+                .Select(p => new OutnetProduct(p))
+                .Where(p => p.HasPrice)
+                .Select(p => p.AsEntity)
+                .ToList();
+
+            Console.WriteLine($"Selenium took {sw.Elapsed} to extract {products.Count} items");
+
+            _logger.LogInformation($"Found {products.Count()} products");
+
+            return products;
         }
 
         private IEnumerable<Product> GetCoachBags(int count)

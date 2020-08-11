@@ -5,5 +5,6 @@ namespace coach_bags_selenium.Data
         FwrdShoes,
         FwrdDresses,
         FwrdBags,
+        OutnetCoats,
     }
 }
