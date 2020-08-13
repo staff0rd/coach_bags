@@ -51,39 +51,35 @@ namespace coach_bags_selenium
             return Unit.Value;
         }
 
+
+        private string GetOutnetUrl(int pageNumber) => $"https://www.theoutnet.com/en-au/shop/clothing/coats?pageNumber={pageNumber}";
         private async Task<IEnumerable<Product>> GetOutnetCoats(int count)
         {
-            var url = "https://www.theoutnet.com/en-au/shop/clothing/coats?pageNumber=1";
-            _driver.Navigate().GoToUrl(url);
-
-            var sw = Stopwatch.StartNew();
-
             var config = Configuration.Default;
             var context = BrowsingContext.New(config);
+            var products = new List<Product>();
+            var pageNumber = 0;
+            while (products.Count < count)
+            {
+                products.AddRange(await GetOutnetCoats(context, GetOutnetUrl(++pageNumber)));
+            }
+
+            return products;
+        }
+
+        private async Task<List<Product>> GetOutnetCoats(IBrowsingContext context, string url)
+        {
+            _driver.Navigate().GoToUrl(url);
             var document = await context.OpenAsync(req => req.Content(_driver.PageSource));
             var ps = document.QuerySelectorAll("[id^=pid]");
 
-            var products2 = ps
-                .Select(p => new AngleOutnetProduct(p))
-                .Where(p => p.HasPrice)
-                .Select(p => p.AsEntity)
-                .ToList();
-
-            Console.WriteLine($"AngleSharp took {sw.Elapsed} to extract {products2.Count} items");
-
-            sw = Stopwatch.StartNew();
-
-            var products =
-                _driver.FindElementsByCssSelector("[id^=pid]")
+            var products = ps
                 .Select(p => new OutnetProduct(p))
                 .Where(p => p.HasPrice)
                 .Select(p => p.AsEntity)
                 .ToList();
 
-            Console.WriteLine($"Selenium took {sw.Elapsed} to extract {products.Count} items");
-
             _logger.LogInformation($"Found {products.Count()} products");
-
             return products;
         }
 
