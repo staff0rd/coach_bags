@@ -16,6 +16,8 @@ public static class RegexExtensions
             .ToArray();
     }
 
+    public static bool In<T>(this T val, params T[] vals) => vals.Contains(val);
+
     public static string[] GetGroupMatches(this string value, string pattern) =>
         Regex.Matches(value, pattern).GetGroupMatches();
  

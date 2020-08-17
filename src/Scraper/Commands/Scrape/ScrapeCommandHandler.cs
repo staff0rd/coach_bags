@@ -40,7 +40,8 @@ namespace coach_bags_selenium
                 {
                     Category.CoachBags => GetCoachBags(request.Count),
                     Category.OutnetCoats => await GetOutnetCoats(request.Count),
-                    Category.FarfetchDresses => await GetFarfetchDresses(request.Count),
+                    var x when x.In(Category.FarfetchDresses, Category.FarfetchShoes) =>
+                        await GetFarfetchProducts(request.Count, request.Category),
                     _ => await GetFwrdProducts(request.Category),
                 };
 
@@ -56,7 +57,11 @@ namespace coach_bags_selenium
 
 
         private string GetOutnetUrl(int pageNumber) => $"https://www.theoutnet.com/en-au/shop/clothing/coats?pageNumber={pageNumber}";
-        private string GetFarfetchUrl(int pageNumber) => $"https://www.farfetch.com/au/plpslice/listing-api/products-facets?page={pageNumber}&view=180&sort=2&category=135979&pagetype=Shopping&gender=Women&pricetype=Sale";
+        private string GetFarfetchUrl(int pageNumber, Category category) => category switch { 
+            Category.FarfetchDresses => $"https://www.farfetch.com/au/plpslice/listing-api/products-facets?page={pageNumber}&view=180&sort=2&category=135979&pagetype=Shopping&gender=Women&pricetype=Sale",
+            Category.FarfetchShoes => $"https://www.farfetch.com/au/plpslice/listing-api/products-facets?page={pageNumber}&view=180&sort=2&category=136307|136308&pagetype=Shopping&gender=Women&pricetype=Sale",
+            _ => throw new NotImplementedException(),
+        };
         
         private async Task<IEnumerable<Product>> GetOutnetCoats(int count)
         {
@@ -77,18 +82,18 @@ namespace coach_bags_selenium
             return products;
         }
 
-        private async Task<IEnumerable<Product>> GetFarfetchDresses(int count)
+        private async Task<IEnumerable<Product>> GetFarfetchProducts(int count, Category category)
         {
             var products = new List<Product>();
             var pageNumber = 0;
             while (products.Count < count)
             {
-                var json = await GetFarfetchUrl(++pageNumber)
+                var json = await GetFarfetchUrl(++pageNumber, category)
                     .GetJsonAsync<FarfetchProducts>();
                     
                 var p = json.ListingItems.Items
                     .Where(p => p.PriceInfo.FinalPrice < 1000)
-                    .Select(p => p.ToEntity(Category.FarfetchDresses));
+                    .Select(p => p.ToEntity(category));
 
                 products.AddRange(p);
             }
