@@ -11,6 +11,8 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using OpenQA.Selenium.Chrome;
 using AngleSharp.Dom;
+using Flurl.Http;
+using coach_bags_selenium.Farfetch;
 
 namespace coach_bags_selenium
 {
@@ -38,6 +40,7 @@ namespace coach_bags_selenium
                 {
                     Category.CoachBags => GetCoachBags(request.Count),
                     Category.OutnetCoats => await GetOutnetCoats(request.Count),
+                    Category.FarfetchDresses => await GetFarfetchDresses(request.Count),
                     _ => await GetFwrdProducts(request.Category),
                 };
 
@@ -53,7 +56,8 @@ namespace coach_bags_selenium
 
 
         private string GetOutnetUrl(int pageNumber) => $"https://www.theoutnet.com/en-au/shop/clothing/coats?pageNumber={pageNumber}";
-
+        private string GetFarfetchUrl(int pageNumber) => $"https://www.farfetch.com/au/plpslice/listing-api/products-facets?page={pageNumber}&view=180&sort=2&category=135979&pagetype=Shopping&gender=Women&pricetype=Sale";
+        
         private async Task<IEnumerable<Product>> GetOutnetCoats(int count)
         {
             var products = new List<Product>();
@@ -73,16 +77,22 @@ namespace coach_bags_selenium
             return products;
         }
 
-        private List<Product> GetOutnetCoats(IDocument document)
+        private async Task<IEnumerable<Product>> GetFarfetchDresses(int count)
         {
-            var ps = document.QuerySelectorAll("[id^=pid]");
-            var products = ps
-                .Select(p => new OutnetProduct(p))
-                .Where(p => p.HasPrice)
-                .Select(p => p.AsEntity(Category.OutnetCoats))
-                .ToList();
+            var products = new List<Product>();
+            var pageNumber = 0;
+            while (products.Count < count)
+            {
+                var json = await GetFarfetchUrl(++pageNumber)
+                    .GetJsonAsync<FarfetchProducts>();
+                    
+                var p = json.ListingItems.Items
+                    .Where(p => p.PriceInfo.FinalPrice < 1000)
+                    .Select(p => p.ToEntity(Category.FarfetchDresses));
 
-            _logger.LogInformation($"Found {products.Count()} products");
+                products.AddRange(p);
+            }
+
             return products;
         }
 
