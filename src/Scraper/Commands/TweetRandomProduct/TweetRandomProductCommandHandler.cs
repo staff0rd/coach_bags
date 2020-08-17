@@ -50,8 +50,8 @@ namespace coach_bags_selenium
                     {
                         Medias = media.ToList()
                     });
-                    _logger.LogInformation($"Tweeted: {text}");
                 }
+                _logger.LogInformation($"{(request.PrepareOnly ? "Prepared" : "Tweeted")}: {text}");
                 db.SaveChanges();
 
                 await _mediator.Send(new ExportProductsCommand());
