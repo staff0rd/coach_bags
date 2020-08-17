@@ -59,7 +59,7 @@ namespace coach_bags_selenium
         private string GetOutnetUrl(int pageNumber) => $"https://www.theoutnet.com/en-au/shop/clothing/coats?pageNumber={pageNumber}";
         private string GetFarfetchUrl(int pageNumber, Category category) => category switch { 
             Category.FarfetchDresses => $"https://www.farfetch.com/au/plpslice/listing-api/products-facets?page={pageNumber}&view=180&sort=2&category=135979&pagetype=Shopping&gender=Women&pricetype=Sale",
-            Category.FarfetchShoes => $"https://www.farfetch.com/au/plpslice/listing-api/products-facets?page={pageNumber}&view=180&sort=2&category=136307|136308&pagetype=Shopping&gender=Women&pricetype=Sale",
+            Category.FarfetchShoes => $"https://www.farfetch.com/au/plpslice/listing-api/products-facets?page={pageNumber}&view=180&sort=2&category=136307|136308&attributes:17=58|59|75&pagetype=Shopping&gender=Women&pricetype=Sale",
             _ => throw new NotImplementedException(),
         };
         
