@@ -39,10 +39,13 @@ namespace coach_bags_selenium
                 var products = request.Category switch
                 {
                     Category.CoachBags => GetCoachBags(request.Count),
-                    Category.OutnetCoats => await GetOutnetCoats(request.Count),
+                    var x when x.In(Category.OutnetCoats, Category.OutnetShoes) =>
+                        await GetOutnetProducts(request.Count, request.Category),
                     var x when x.In(Category.FarfetchDresses, Category.FarfetchShoes) =>
                         await GetFarfetchProducts(request.Count, request.Category),
-                    _ => await GetFwrdProducts(request.Category),
+                    var x when x.In(Category.FwrdBags, Category.FwrdDresses, Category.FwrdShoes) =>
+                        await GetFwrdProducts(request.Category),
+                    _ => throw new NotImplementedException(),
                 };
 
                 var deDupedProducts = products
@@ -69,25 +72,34 @@ namespace coach_bags_selenium
         }
 
 
-        private string GetOutnetUrl(int pageNumber) => $"https://www.theoutnet.com/en-au/shop/clothing/coats?pageNumber={pageNumber}";
+        private string GetOutnetUrl(int pageNumber, Category category) => category switch {
+          Category.OutnetCoats => $"https://www.theoutnet.com/en-au/shop/clothing/coats?pageNumber={pageNumber}",
+          Category.OutnetShoes => $"https://www.theoutnet.com/en-au/shop/clearance/shoes/heels?pageNumber={pageNumber}",
+          _ => throw new NotImplementedException(),
+        };
+
         private string GetFarfetchUrl(int pageNumber, Category category) => category switch { 
             Category.FarfetchDresses => $"https://www.farfetch.com/au/plpslice/listing-api/products-facets?page={pageNumber}&view=180&sort=2&category=135979&pagetype=Shopping&gender=Women&pricetype=Sale",
             Category.FarfetchShoes => $"https://www.farfetch.com/au/plpslice/listing-api/products-facets?page={pageNumber}&view=180&sort=2&category=136307|136308&attributes:17=58|59|75&pagetype=Shopping&gender=Women&pricetype=Sale",
             _ => throw new NotImplementedException(),
         };
         
-        private async Task<IEnumerable<Product>> GetOutnetCoats(int count)
+        private async Task<IEnumerable<Product>> GetOutnetProducts(int count, Category category)
         {
             var products = new List<Product>();
             var pageNumber = 0;
             while (products.Count < count)
             {
-                _driver.Navigate().GoToUrl(GetOutnetUrl(++pageNumber));
-                var json = _driver.ExecuteScript("return JSON.stringify(window.state.plp.listing.visibleProducts[0].products)").ToString();
+                var url = GetOutnetUrl(++pageNumber, category);
+                _driver.Navigate().GoToUrl(url);
+                var json = _driver.ExecuteScript("return JSON.stringify(window.state?.plp.listing.visibleProducts[0].products || [])").ToString();
                 
                 var p = coach_bags_selenium.Outnet.OutnetProduct.FromJson(json)
                     .Where(p => p.Price.WasPrice != null)
-                    .Select(p => p.ToEntity);
+                    .Select(p => p.ToEntity(category));
+                
+                if (p.Count() == 0)
+                    break;
 
                 products.AddRange(p);
             }

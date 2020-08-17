@@ -31,7 +31,7 @@ namespace coach_bags_selenium
 
         private Size GetTwitterSize(Category category, int count) => category switch {
             Category.CoachBags when count == 2 => new Size (1200, 1200),
-            var x when x.In(Category.FwrdBags, Category.FwrdDresses, Category.FwrdShoes, Category.OutnetCoats)
+            var x when x.In(Category.FwrdBags, Category.FwrdDresses, Category.FwrdShoes, Category.OutnetCoats, Category.OutnetShoes)
                 && count == 2 => new Size (1440, 1440),
             var x when x.In(Category.FarfetchDresses, Category.FarfetchShoes)
                 && count == 2 => new Size (1334, 1334),
@@ -112,6 +112,7 @@ namespace coach_bags_selenium
                 var x when x.In(
                     Category.FarfetchDresses,
                     Category.FarfetchShoes,
+                    Category.OutnetShoes,
                     Category.OutnetCoats) => await _mediator.Send(new GetImageSourcesFromPageCommand { Url = product.Link, Category = category }),
                 _ => Enumerable.Range(1, 9)
                     .Select(i => Regex.Replace(fwrdZoomed, @"_V\d\.jpg", $"_V{i}.jpg"))

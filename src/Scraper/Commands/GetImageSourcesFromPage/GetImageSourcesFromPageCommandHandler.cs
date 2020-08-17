@@ -25,8 +25,8 @@ namespace coach_bags_selenium
             try
             {
                 var images = request.Category switch {
-                    Category.OutnetCoats => GetOutnetProducts(request.Url),
-                    var x when x.In(Category.FarfetchDresses, Category.FarfetchShoes) => await GetFarfetchProducts(request.Url),
+                    var x when x.In(Category.OutnetCoats, Category.OutnetShoes) => GetOutnetImages(request.Url, request.Category),
+                    var x when x.In(Category.FarfetchDresses, Category.FarfetchShoes) => await GetFarfetchImages(request.Url),
                     _ => throw new NotImplementedException(),
                 };
 
@@ -38,7 +38,7 @@ namespace coach_bags_selenium
             }
         }
 
-        private async Task<IEnumerable<string>> GetFarfetchProducts(string url)
+        private async Task<IEnumerable<string>> GetFarfetchImages(string url)
         {
             var html = await ScrapeCommandHandler.GetHtml(_driver, url);
             var result = html.QuerySelectorAll("div[data-tstid=slideshow] img")
@@ -47,12 +47,12 @@ namespace coach_bags_selenium
             return result.Take(result.Count() - 1);
         }
 
-        private IEnumerable<string> GetOutnetProducts(string url)
+        private IEnumerable<string> GetOutnetImages(string url, Category category)
         {
             _driver.Navigate().GoToUrl(url);
             var json = _driver.ExecuteScript("return JSON.stringify(window.state.pdp.detailsState.response.body.products)").ToString();
             var images = coach_bags_selenium.Outnet.OutnetProduct.FromJson(json)
-                .SelectMany(p => p.ToEntity.Images);
+                .SelectMany(p => p.ToEntity(category).Images);
             
             return images;
         }

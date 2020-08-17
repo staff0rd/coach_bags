@@ -8,5 +8,6 @@ namespace coach_bags_selenium.Data
         OutnetCoats,
         FarfetchDresses,
         FarfetchShoes,
+        OutnetShoes,
     }
 }
