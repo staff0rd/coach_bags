@@ -1,4 +1,6 @@
+using System;
 using AngleSharp.Dom;
+using coach_bags_selenium.Data;
 
 namespace coach_bags_selenium
 {
@@ -13,18 +15,20 @@ namespace coach_bags_selenium
         public bool HasPrice => _element.QuerySelectorAll("s").Length > 0;
         public decimal Savings => Price - SalePrice;
         public string Id => _element.GetAttribute("id").Replace("pid-", "");
-        public string Image => _element.QuerySelector("img").GetAttribute("src");
+        public string Image => "https:" + _element.QuerySelector("noscript img[itemprop=image]").GetAttribute("src");
 
         public OutnetProduct(IElement element)
         {
             _element = element;
+            Console.WriteLine(Image);
         }
 
-        public coach_bags_selenium.Data.Product AsEntity => new Data.Product
+        public coach_bags_selenium.Data.Product AsEntity(Category category) => new Data.Product
         {
             Link = Link,
             Name = Name,
             Brand = Brand,
+            Category = category,
             SalePrice = SalePrice,
             Price = Price,
             Savings = Savings,

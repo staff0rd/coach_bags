@@ -17,6 +17,9 @@ namespace coach_bags_selenium
         [Option("-s|--source", CommandOptionType.SingleValue)]
         [Required]
         public string SourceUrl { get; set; }
+
+        public Product Product { get; set; }
+
         public DateTime Now { get; set; } = DateTime.UtcNow;
     }
 }

@@ -33,13 +33,14 @@ namespace coach_bags_selenium
             Category.CoachBags when count == 2 => new Size (1200, 1200),
             Category.FwrdBags when count == 2 => new Size (1440, 1440),
             Category.FwrdShoes when count == 2 => new Size (1440, 1440),
+            Category.OutnetCoats when count == 2 => new Size (1050, 1050),
             Category.FwrdDresses when count == 2 => new Size (1440, 1440),
             _ => new Size (2400, 1256)
         };
 
         public async Task<GetImagesCommandResult> Handle(GetImagesCommand request, CancellationToken cancellationToken)
         {
-            var sources = GetSources(request.Category, request.SourceUrl);
+            var sources = await GetSources(request.Category, request.Product, request.SourceUrl);
 
             sources = await DownloadSources(sources, request.Now);
             
@@ -83,7 +84,10 @@ namespace coach_bags_selenium
         {
             try
             {
-                await source.DownloadFileAsync(LOCAL_DIRECTORY, downloadFileName);
+                await source
+                    .WithHeader("Connection", "keep-alive") // needed for outnet
+                    .DownloadFileAsync(LOCAL_DIRECTORY, downloadFileName);
+
                 _logger.LogInformation($"Downloaded {source}");
                 return await S3Upload(Path.Combine(LOCAL_DIRECTORY, downloadFileName), timestamp);
             }
@@ -93,22 +97,22 @@ namespace coach_bags_selenium
             }
         }
 
-        private IEnumerable<string> GetSources(Category category, string sourceUrl)
+        private async Task<IEnumerable<string>> GetSources(Category category, Product product, string sourceUrl)
         {
-            if (category == Category.CoachBags)
+            if (product != null)
             {
-                for (int i = 1 ; i < 10 ; i++)
-                {
-                    yield return Regex.Replace(sourceUrl, @"_(\d)\.jpg\?sw=(\d+)&sh=(\d+)", $"_{i}.jpg?sw=1200&sh=1200");
-                }
-            } else
-            {
-                for (int i = 1; i < 10 ; i++)
-                {
-                    var zoomed = Regex.Replace(sourceUrl, @"p\/fw\/.+\/", "p/fw/z/");
-                    yield return Regex.Replace(zoomed, @"_V\d\.jpg", $"_V{i}.jpg");
-                }
+                sourceUrl = product.Image;
             }
+
+            var fwrdZoomed = Regex.Replace(sourceUrl, @"p\/fw\/.+\/", "p/fw/z/");
+
+            return category switch {
+                Category.CoachBags => Enumerable.Range(1, 9)
+                    .Select(i => Regex.Replace(sourceUrl, @"_(\d)\.jpg\?sw=(\d+)&sh=(\d+)", $"_{i}.jpg?sw=1200&sh=1200")),
+                Category.OutnetCoats => await _mediator.Send(new GetImageSourcesFromPageCommand { Url = product.Link, Category = category }),
+                _ => Enumerable.Range(1, 9)
+                    .Select(i => Regex.Replace(fwrdZoomed, @"_V\d\.jpg", $"_V{i}.jpg"))
+            };
         }
 
         private async Task<byte[]> GetImage(string src, Size size, DateTime timestamp)

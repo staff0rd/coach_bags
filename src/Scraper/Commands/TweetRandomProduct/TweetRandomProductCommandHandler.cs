@@ -38,7 +38,7 @@ namespace coach_bags_selenium
             if (product != null)
             {
                 product.LastPostedUtc = request.Since;
-                var images = await _mediator.Send(new GetImagesCommand{ Category = request.Category, SourceUrl = product.Image});
+                var images = await _mediator.Send(new GetImagesCommand{ Category = request.Category, Product = product });
                 product.Images = images.S3Uploaded.ToArray();
                 var text = $"{product.Brand} - {product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link}";
 

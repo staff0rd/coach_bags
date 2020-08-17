@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +10,7 @@ using coach_bags_selenium.Data;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using OpenQA.Selenium.Chrome;
+using AngleSharp.Dom;
 
 namespace coach_bags_selenium
 {
@@ -53,34 +53,39 @@ namespace coach_bags_selenium
 
 
         private string GetOutnetUrl(int pageNumber) => $"https://www.theoutnet.com/en-au/shop/clothing/coats?pageNumber={pageNumber}";
+        private string GetOutnetJsonUrl(int pageNumber) => $"https://www.theoutnet.com/api/yoox/ton/search/resources/store/theoutnet_au/productview/byCategory?category=%2Fclothing%2Fcoats&locale=en_US&pageNumber={pageNumber}&pageSize=96";
         private async Task<IEnumerable<Product>> GetOutnetCoats(int count)
         {
-            var config = Configuration.Default;
-            var context = BrowsingContext.New(config);
             var products = new List<Product>();
             var pageNumber = 0;
             while (products.Count < count)
             {
-                products.AddRange(await GetOutnetCoats(context, GetOutnetUrl(++pageNumber)));
+                products.AddRange(GetOutnetCoats(await GetHtml(_driver, GetOutnetUrl(++pageNumber))));
             }
 
             return products;
         }
 
-        private async Task<List<Product>> GetOutnetCoats(IBrowsingContext context, string url)
+        private List<Product> GetOutnetCoats(IDocument document)
         {
-            _driver.Navigate().GoToUrl(url);
-            var document = await context.OpenAsync(req => req.Content(_driver.PageSource));
             var ps = document.QuerySelectorAll("[id^=pid]");
-
             var products = ps
                 .Select(p => new OutnetProduct(p))
                 .Where(p => p.HasPrice)
-                .Select(p => p.AsEntity)
+                .Select(p => p.AsEntity(Category.OutnetCoats))
                 .ToList();
 
             _logger.LogInformation($"Found {products.Count()} products");
             return products;
+        }
+
+        public static async Task<IDocument> GetHtml(ChromeDriver driver, string url)
+        {
+            var config = Configuration.Default;
+            var context = BrowsingContext.New(config);
+            driver.Navigate().GoToUrl(url);
+            var document = await context.OpenAsync(req => req.Content(driver.PageSource));
+            return document;
         }
 
         private IEnumerable<Product> GetCoachBags(int count)
