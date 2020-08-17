@@ -8,7 +8,7 @@ namespace coach_bags_selenium
     public class ExportProductsCommand : Request
     {
         [Option("-p|--page-size", CommandOptionType.SingleOrNoValue)]
-        public int PageSize { get; set; } = 25;
+        public int PageSize { get; set; } = 20;
 
         [Option("-a|--all", CommandOptionType.NoValue)]
         public bool All { get; set; }

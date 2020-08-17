@@ -53,14 +53,21 @@ namespace coach_bags_selenium
 
 
         private string GetOutnetUrl(int pageNumber) => $"https://www.theoutnet.com/en-au/shop/clothing/coats?pageNumber={pageNumber}";
-        private string GetOutnetJsonUrl(int pageNumber) => $"https://www.theoutnet.com/api/yoox/ton/search/resources/store/theoutnet_au/productview/byCategory?category=%2Fclothing%2Fcoats&locale=en_US&pageNumber={pageNumber}&pageSize=96";
+
         private async Task<IEnumerable<Product>> GetOutnetCoats(int count)
         {
             var products = new List<Product>();
             var pageNumber = 0;
             while (products.Count < count)
             {
-                products.AddRange(GetOutnetCoats(await GetHtml(_driver, GetOutnetUrl(++pageNumber))));
+                _driver.Navigate().GoToUrl(GetOutnetUrl(++pageNumber));
+                var json = _driver.ExecuteScript("return JSON.stringify(window.state.plp.listing.visibleProducts[0].products)").ToString();
+                
+                var p = coach_bags_selenium.Outnet.OutnetProduct.FromJson(json)
+                    .Where(p => p.Price.WasPrice != null)
+                    .Select(p => p.ToEntity);
+
+                products.AddRange(p);
             }
 
             return products;

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -20,8 +21,15 @@ namespace coach_bags_selenium
         {
             try
             {
-                var html = await ScrapeCommandHandler.GetHtml(_driver, request.Url);
-                return new OutnetProductDetail(html).Images;
+                _driver.Navigate().GoToUrl(request.Url);
+                var json = _driver.ExecuteScript("return JSON.stringify(window.state.pdp.detailsState.response.body.products)").ToString();
+                
+                var images = coach_bags_selenium.Outnet.OutnetProduct.FromJson(json)
+                    .SelectMany(p => p.ToEntity.Images);
+
+                await Task.Delay(0);
+
+                return images;
             }
             finally
             {

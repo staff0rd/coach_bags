@@ -33,7 +33,7 @@ namespace coach_bags_selenium
             Category.CoachBags when count == 2 => new Size (1200, 1200),
             Category.FwrdBags when count == 2 => new Size (1440, 1440),
             Category.FwrdShoes when count == 2 => new Size (1440, 1440),
-            Category.OutnetCoats when count == 2 => new Size (1050, 1050),
+            Category.OutnetCoats when count == 2 => new Size (1440, 1440),
             Category.FwrdDresses when count == 2 => new Size (1440, 1440),
             _ => new Size (2400, 1256)
         };
