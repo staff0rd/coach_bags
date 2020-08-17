@@ -155,7 +155,7 @@ namespace coach_bags_selenium.Farfetch
             Category = category,
             Id = Id.ToString(),
             Image = Images.CutOut.ToString(),
-            Link = Url,
+            Link = $"https://www.farfetch.com{Url}",
             Name = ShortDescription,
             Price = PriceInfo.InitialPrice,
             SalePrice = PriceInfo.FinalPrice,
