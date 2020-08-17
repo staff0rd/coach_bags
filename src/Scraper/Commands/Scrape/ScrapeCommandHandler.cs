@@ -45,7 +45,20 @@ namespace coach_bags_selenium
                     _ => await GetFwrdProducts(request.Category),
                 };
 
-                _data.GetDatabaseContext().Save(products);
+                var deDupedProducts = products
+                    .GroupBy(p => p.Id)
+                    .OrderByDescending(g => g.Count())
+                    .Select(g => g.First())
+                    .ToList();
+
+                var dupeCount = products.Count() - deDupedProducts.Count;
+
+                if (dupeCount > 0)
+                {
+                    _logger.LogInformation($"Removed {dupeCount}, total is now {deDupedProducts.Count}");
+                }
+
+                _data.GetDatabaseContext().Save(deDupedProducts);
             }
             finally
             {
