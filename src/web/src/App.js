@@ -6,25 +6,38 @@ import { Currency } from './Currency';
 import { extractHostname } from './extractHostname';
 import { config } from './config';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
+  container: {
+    display: 'flex',
+    flexWrap: 'wrap'
+  },
   product: {
+    background: 'lightgray',
     padding: 15,
+    display: 'inline-block',
+    width: 'calc(50vw - 30px)',
+    [theme.breakpoints.up('sm')]: {
+      width: 'calc(33vw - 30px)',
+    },
+    [theme.breakpoints.up('md')]: {
+      width: 'calc(25vw - 30px)',
+    },
   },
   name: {
     margin: 0,
   },
   detail: {
-    marginTop: 0,
-  },
-  images: {
-    overflowX: 'scroll',
+    margin: 0,
   },
   image: {
-    height: '70vh',
-  },
-  button: {
-    display: 'block',
-  },
+    width: '50vw',
+    [theme.breakpoints.up('sm')]: {
+      width: '33vw',
+    },
+    [theme.breakpoints.up('md')]: {
+      width: '25vw',
+    },
+  }
 }));
 
 const App = () => {
@@ -58,37 +71,26 @@ const App = () => {
   }, [bucket, directory])
 
   return products.length ? ( 
-    <ReactFullpage
-      licenseKey = {config().fullPage}
-      scrollingSpeed = {1000}
-      render={({ state, fullpageApi }) => {
-        return (
-          <ReactFullpage.Wrapper>
+    <div className={classes.container}>
             { products.map((p, ix) => (
-              <div key={ix.toString()} className="section">
-                <div className={classes.product}>
-                  <h1 className={classes.name}>{p.brand} - {p.name}</h1>
-                  <p className={classes.detail}>
-                    Was <Currency value={p.price} />, now <Currency value={p.salePrice} />, save <Currency value={p.savings} />.&nbsp;
-                    <a href={p.link}>{psl.parse(extractHostname(p.link)).domain}</a>
-                    <button className={classes.button} onClick={() => fullpageApi.moveSectionDown()}>
-                      Next
-                    </button>
-                  </p>
-                </div>
-                <div className={classes.images}>
-                  <div style={{display: 'inline-flex'}} className="images">
+              <>
+              <div className={classes.product}>
+                <h1 className={classes.name}>{p.brand} - {p.name}</h1>
+                <p className={classes.detail}>
+                  Was <Currency value={p.price} />, now <Currency value={p.salePrice} />, save <Currency value={p.savings} />.&nbsp;
+                  <a href={p.link}>{psl.parse(extractHostname(p.link)).domain}</a>
+                </p>
+              </div>
+                
+                  
                     { p.images.map((img, ix) => (
                       <img className={classes.image} key={ix.toString()} src={`${bucket}/${img}`} alt={`${p.brand} - ${p.name}`} />
                     ))}
-                  </div>
-                </div>
-              </div>
+                
+                </>
+              
             ))}
-          </ReactFullpage.Wrapper>
-        );
-      }}
-    />
+        </div>  
   ) : <h1>Loading...</h1>;
 }
 
