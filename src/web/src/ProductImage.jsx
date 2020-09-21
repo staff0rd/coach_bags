@@ -10,6 +10,7 @@ const useStyles = makeStyles((theme) => ({
     overflow: 'hidden',
     justifyContent: 'center',
     cursor: 'pointer',
+    marginTop: theme.spacing(3),
   },
   image: {
     height: '100%',
@@ -17,13 +18,14 @@ const useStyles = makeStyles((theme) => ({
   
 }));
 
-const ProductImage = ({product, bucket, image}) => {
+const ProductImage = ({product, bucket, image, handleSelect}) => {
   const classes = useStyles();
   return (
     <div className={classes.container}>
       <img
         className={classes.image}
         src={`${bucket}/${image}`}
+        onClick={handleSelect}
         alt={`${product.brand} - ${product.name}`}
       />
     </div>

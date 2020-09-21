@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core'
 import ProductDetail from './ProductDetail';
 import ProductImage from './ProductImage';
 import { flipOnIndex } from './flipOnIndex';
+import Placeholder from './Placeholder';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -62,29 +63,43 @@ const Gallery = () => {
     }
   }, [bucket, directory])
 
+  const handleSelect = (ix) => {
+    if (ix === selected) ix = undefined;
+    setSelected(ix);
+  }
+  
+  let tiles = 0;
+
   return products.length ? ( 
     <div className={classes.root}>
-      { products.map((p, id) => (
-        <div key={id.toString()} className={flipOnIndex(id, classes.leftContainer, classes.rightContainer, id===selected, classes.selectedContainer)}>
-          <ProductDetail product={p} />
-            
-          { selected === id && p.images.slice(1).map((img, ix) => (
-            <div className={classes.image}>
-              <img
-                className={classes.img}
-                key={ix.toString()} 
-                src={`${bucket}/${img}`}
-                alt={`${p.brand} - ${p.name}`}
-              />
-            </div>
-          ))}
-          { p.images.slice(0, 1).map((image, ix) => (
-            <ProductImage key={ix.toString()} product={p} image={image} bucket={bucket} />
-          ))}
+      { products.map((p, productId) => { 
+        const rightAlign = flipOnIndex(tiles, window.innerWidth >= 960 ? 4 : 2);
+        tiles++;
+        return (
+        <>
+          { rightAlign && (
+            <ProductDetail key={productId.toString()} product={p} rightAlign={rightAlign} />
+          )}
+          { p.images.slice(0, 1).map((image) => {
+            tiles++;
+            return (
+              <ProductImage key={`${productId}-first`} product={p} image={image} bucket={bucket} handleSelect={() => handleSelect(productId)} />
+              )})}
+          { selected === productId && p.images.slice(1, p.images.length).map((image, ix) => { 
+            tiles++;
+            return (
+            <ProductImage key={`${productId}-${ix}`} product={p} image={image} bucket={bucket} handleSelect={() => handleSelect(productId)} />
+          )})}
+          { selected === productId && p.images.length % 2 === 0 && (
+            <Placeholder />
+          )}
+          { !rightAlign && (
+            <ProductDetail key={productId.toString()} product={p} rightAlign={rightAlign} />
+          )}
           
-        </div>
+        </>
         
-      ))}
+      )})}
     </div>  
   ) : <h1>Loading...</h1>;
 }

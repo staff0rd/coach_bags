@@ -14,9 +14,10 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
     width: 240,
     height: 240,
+    marginTop: theme.spacing(3),
   },
   productContainer: {
-    padding: theme.spacing(0,2),
+    padding: theme.spacing(0,1),
     display: 'flex',
     flexDirection: 'column',
   },
@@ -25,7 +26,7 @@ const useStyles = makeStyles(theme => ({
     fontSize: 14,
   },
   detail: {
-    margin: theme.spacing(1, 1, 0, 1),
+    margin: theme.spacing(1, 0, 0, 0),
   },
   priceContainer: {
     paddingBottom: theme.spacing(1),
@@ -46,11 +47,11 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const ProductDetail = ({ product }) => {
+const ProductDetail = ({ product, rightAlign }) => {
   const classes = useStyles();
   const history = useHistory();
   return (
-    <div className={classes.product}>
+    <div className={classes.product} style={{ textAlign: rightAlign ? 'right' : 'left'}}>
       <div className={classes.productContainer}>
         <Typography className={classes.brandName}>
           {product.brand} - {product.name}
