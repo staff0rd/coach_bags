@@ -72,7 +72,7 @@ const Gallery = () => {
             return (
             <ProductImage key={`${productId}-${ix}`} product={p} image={image} bucket={bucket} handleSelect={() => handleSelect(productId)} />
           )})}
-          { selected === productId && p.images.length % 2 === 0 && (
+          { selected === productId && p.images.length % 2 === 0 && ++tiles && (
             <Placeholder />
           )}
           { !rightAlign && (
