@@ -1,4 +1,4 @@
 {
-    "bucket": "http://localhost:4566/demo-bucket",
+    "bucket": "http://192.168.2.100:4566/demo-bucket",
     "directory": "local"
 }

@@ -11,6 +11,10 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
     cursor: 'pointer',
     marginTop: theme.spacing(3),
+    [theme.breakpoints.down('sm')]: {
+      width: 'calc(50vw - 4px)',
+      height: 'calc(50vw - 4px)',
+    },
   },
   image: {
     height: '100%',

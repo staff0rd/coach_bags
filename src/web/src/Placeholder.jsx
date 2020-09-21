@@ -12,6 +12,10 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    [theme.breakpoints.down('sm')]: {
+      width: '50vw',
+      height: '50vw',
+    },
   },
   button: {
     color: 'gray',

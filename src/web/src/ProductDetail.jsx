@@ -15,6 +15,10 @@ const useStyles = makeStyles(theme => ({
     width: 240,
     height: 240,
     marginTop: theme.spacing(3),
+    [theme.breakpoints.down('sm')]: {
+      width: '50vw',
+      height: '50vw',
+    },
   },
   productContainer: {
     padding: theme.spacing(0,1),
@@ -23,7 +27,7 @@ const useStyles = makeStyles(theme => ({
   },
   brandName: {
     lineHeight: 1,
-    fontSize: 14,
+    fontSize: 12,
   },
   detail: {
     margin: theme.spacing(1, 0, 0, 0),
@@ -39,6 +43,10 @@ const useStyles = makeStyles(theme => ({
     textAlign: 'center',
     color: '#E66300',
     fontSize: 22,
+    [theme.breakpoints.down('sm')]: {
+      fontSize: 14,
+      padding: theme.spacing(.5),
+    },
   },
   button: {
     fontSize: '0.5rem',

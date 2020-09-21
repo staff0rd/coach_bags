@@ -1,17 +1,28 @@
 import React from 'react';
 import Gallery from './Gallery';
 import { makeStyles } from '@material-ui/core/styles';
+import { useTheme } from '@material-ui/core/styles';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 
 const useStyles = makeStyles(theme => ({
     root: {
         display: 'flex',
         justifyContent: 'center',
         flexDirection: 'column',
+        maxWidth: '100%',
     },
     header: {
         display: 'flex',
         justifyContent: 'center',
+        alignItems: 'center',
+        maxWidth:'100%',
     },  
+    image: {
+        maxWidth: 960,
+        [theme.breakpoints.down('sm')]: {
+            maxWidth: '100%',
+        },
+    },
     menu: {
         display: 'flex',
         justifyContent: 'center',
@@ -34,20 +45,24 @@ const useStyles = makeStyles(theme => ({
 
 const App = () => {
     const classes = useStyles();
+    const theme = useTheme();
+    const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
     return (
         <div className={classes.root}>
             <div className={classes.header}>
-                <img width='960' src='/header.png' alt='bags on sale' />
+                <img className={classes.image} src='/header.png' alt='bags on sale' />
             </div>
-            <div className={classes.menu}>
-                <ul>
-                    <li>All</li>
-                    <li>Bags</li>
-                    <li>Dresses</li>
-                    <li>Shoes</li>
-                    <li>Coats</li>
-                </ul>
-            </div>
+            { !isSmall && (
+                <div className={classes.menu}>
+                    <ul>
+                        <li>All</li>
+                        <li>Bags</li>
+                        <li>Dresses</li>
+                        <li>Shoes</li>
+                        <li>Coats</li>
+                    </ul>
+                </div>
+            )}
             <div className={classes.gallery}>
                 <Gallery />
             </div>

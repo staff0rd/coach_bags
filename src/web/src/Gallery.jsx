@@ -12,24 +12,6 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
     maxWidth: 960,
   },
-  leftContainer: {
-    display: 'flex',
-    flexDirection: 'row-reverse',
-    margin: theme.spacing(3, 0),
-  },
-  selectedContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    margin: theme.spacing(3, 0),
-    maxWidth: 960,
-    textAlign: 'right',
-    flexFlow: 'wrap',
-  },
-  rightContainer: {
-    display: 'flex',
-    textAlign: 'right',
-    margin: theme.spacing(3, 0),
-  }
 }));
 
 const Gallery = () => {
