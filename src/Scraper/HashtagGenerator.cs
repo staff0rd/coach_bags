@@ -6,7 +6,7 @@ namespace coach_bags_selenium
     {
         public string Generate(string input)
         {
-            Regex rgx = new Regex("[^a-zA-Z0-9 -]");
+            Regex rgx = new Regex("[^a-zA-Z0-9]");
             var transformed = rgx.Replace(input, "")
                 .ToLower();
 
