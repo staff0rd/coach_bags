@@ -32,5 +32,6 @@ namespace coach_bags_selenium.Data
         public string Image { get; set; }
         public Category Category { get; set; }
         public string[] Images {get; set;}
+        public string[] Tags { get; set; }
     }
 }

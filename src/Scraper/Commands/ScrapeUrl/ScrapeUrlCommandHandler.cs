@@ -78,6 +78,8 @@ namespace coach_bags_selenium
                 products.AddRange(p);
             }
 
+            await Task.Delay(0);
+
             return products;
         }
 

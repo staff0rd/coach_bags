@@ -15,7 +15,7 @@ using SixLabors.ImageSharp.Processing;
 
 namespace coach_bags_selenium
 {
-    public class GetImagesCommandHandler : IRequestHandler<GetImagesCommand, GetImagesCommandResult>
+    public class GetImagesCommandHandler : IRequestHandler<GetMetadataCommand, GetMetadataCommandResult>
     {
         const string LOCAL_DIRECTORY = "download";
         private readonly ILogger<GetImagesCommandHandler> _logger;
@@ -38,11 +38,11 @@ namespace coach_bags_selenium
             _ => new Size (2400, 1256)
         };
 
-        public async Task<GetImagesCommandResult> Handle(GetImagesCommand request, CancellationToken cancellationToken)
+        public async Task<GetMetadataCommandResult> Handle(GetMetadataCommand request, CancellationToken cancellationToken)
         {
-            var sources = await GetSources(request.Category, request.Product, request.SourceUrl);
+            var metadata = await GetMetadata(request.Category, request.Product, request.SourceUrl);
 
-            sources = await DownloadSources(sources, request.Now);
+            var sources = await DownloadSources(metadata.Images, request.Now);
             
             var twitterSources = request.Category switch {
                 Category.FwrdDresses => sources.Take(3),
@@ -56,10 +56,11 @@ namespace coach_bags_selenium
                 .Select(p => p.Result)
                 .ToList();
 
-            return new GetImagesCommandResult
+            return new GetMetadataCommandResult
             {
-                S3Uploaded = sources.ToList(),
-                ForTwitter = twitterImages,
+                ImagesS3Uploaded = sources.ToList(),
+                ImagesForTwitter = twitterImages,
+                Tags = metadata.Tags.ToList(),
             };
         }
 
@@ -97,25 +98,35 @@ namespace coach_bags_selenium
             }
         }
 
-        private async Task<IEnumerable<string>> GetSources(Category category, Product product, string sourceUrl)
+        private async Task<ProductMetadata> GetMetadata(Category category, Product product, string imageSourceUrl)
         {
             if (product != null)
             {
-                sourceUrl = product.Image;
+                imageSourceUrl = product.Image;
             }
 
-            var fwrdZoomed = Regex.Replace(sourceUrl, @"p\/fw\/.+\/", "p/fw/z/");
+            var fwrdZoomed = Regex.Replace(imageSourceUrl, @"p\/fw\/.+\/", "p/fw/z/");
+
+            var metadata = await _mediator.Send(new GetMetadataFromPageCommand { Url = product.Link, Category = category });
 
             return category switch {
-                Category.CoachBags => Enumerable.Range(1, 9)
-                    .Select(i => Regex.Replace(sourceUrl, @"_(\d)\.jpg\?sw=(\d+)&sh=(\d+)", $"_{i}.jpg?sw=1200&sh=1200")),
+                Category.CoachBags => new ProductMetadata {
+                    Images = Enumerable.Range(1, 9)
+                    .Select(i => Regex.Replace(imageSourceUrl, @"_(\d)\.jpg\?sw=(\d+)&sh=(\d+)", $"_{i}.jpg?sw=1200&sh=1200"))
+                    .ToArray(),
+                    Tags = metadata.Tags,
+                },
                 var x when x.In(
                     Category.FarfetchDresses,
                     Category.FarfetchShoes,
                     Category.OutnetShoes,
-                    Category.OutnetCoats) => await _mediator.Send(new GetImageSourcesFromPageCommand { Url = product.Link, Category = category }),
-                _ => Enumerable.Range(1, 9)
+                    Category.OutnetCoats) => metadata,
+                _ => new ProductMetadata {
+                    Images = Enumerable.Range(1, 9)
                     .Select(i => Regex.Replace(fwrdZoomed, @"_V\d\.jpg", $"_V{i}.jpg"))
+                    .ToArray(),
+                    Tags = metadata.Tags,
+                }
             };
         }
 

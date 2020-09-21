@@ -8,7 +8,7 @@ using MediatR;
 namespace coach_bags_selenium
 {
     [Command("images")]
-    public class GetImagesCommand : Request<GetImagesCommandResult>
+    public class GetMetadataCommand : Request<GetMetadataCommandResult>
     {
         [Option("-c|--category", CommandOptionType.SingleValue)]
         [Required]

@@ -39,8 +39,9 @@ namespace coach_bags_selenium
             if (product != null)
             {
                 product.LastPostedUtc = request.Since;
-                var images = await _mediator.Send(new GetImagesCommand{ Category = request.Category, Product = product });
-                product.Images = images.S3Uploaded.ToArray();
+                var metadata = await _mediator.Send(new GetMetadataCommand{ Category = request.Category, Product = product });
+                product.Images = metadata.ImagesS3Uploaded.ToArray();
+                product.Tags = metadata.Tags.ToArray();
                 var brandHashtag = new HashtagGenerator().Generate(product.Brand);
                 var categoryHashtag = GetTypeHashtag(product.Category);
 
@@ -49,13 +50,14 @@ namespace coach_bags_selenium
                 if (!request.PrepareOnly)
                 {
                     Auth.SetUserCredentials(_twitterOptions.ConsumerKey, _twitterOptions.ConsumerSecret, _twitterOptions.AccessToken, _twitterOptions.AccessTokenSecret);
-                    var media = UploadImagesToTwitter(images.ForTwitter);
+                    var media = UploadImagesToTwitter(metadata.ImagesForTwitter);
                     var tweet = Tweet.PublishTweet(text, new PublishTweetOptionalParameters
                     {
                         Medias = media.ToList()
                     });
                 }
                 _logger.LogInformation($"{(request.PrepareOnly ? "Prepared" : "Tweeted")}: {text}");
+                _logger.LogInformation($"Tags: {string.Join(", ", product.Tags)}");
                 db.SaveChanges();
 
                 await _mediator.Send(new ExportProductsCommand());

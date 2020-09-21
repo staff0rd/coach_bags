@@ -19,7 +19,7 @@ namespace coach_bags_selenium
 {
 
     [Subcommand(
-        typeof(GetImagesCommand),
+        typeof(GetMetadataCommand),
         typeof(BackfillImagesCommand),
         typeof(ExportProductsCommand),
         typeof(ScrapeAndTweetCommand),

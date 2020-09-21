@@ -36,8 +36,8 @@ namespace coach_bags_selenium
             var count = 0;
             foreach (var product in productsWithoutImages)
             {
-                var result = await _mediator.Send(new GetImagesCommand { Now = product.LastPostedUtc.Value, Product = product, Category = product.Category });
-                product.Images = result.S3Uploaded.ToArray();
+                var result = await _mediator.Send(new GetMetadataCommand { Now = product.LastPostedUtc.Value, Product = product, Category = product.Category });
+                product.Images = result.ImagesS3Uploaded.ToArray();
                 await db.SaveChangesAsync();
                 count++;
                 _logger.LogInformation($"Completed {count}/{productsWithoutImages.Count} images");

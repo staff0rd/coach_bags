@@ -10,14 +10,16 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/src/Scraper/bin/Debug/netcoreapp3.1/coach_bags_selenium.dll",
-            "args": [ "tweet", "-p", "-c", "OutnetShoes", "--count=300"],
+            //"args": [ "tweet", "-p", "-c", "OutnetCoats", "--count=30"],
+            "args": [ "tweet", "-p", "-c", "FarfetchDresses", "--count=30"],
+            //"args": [ "tweet", "-p", "-c", "FwrdDresses", "--count=30"],
+            //"args": [ "tweet", "-p", "-c", "CoachBags", "--count=30"],
             //"args": [ "backfill", "-o",],
             "cwd": "${workspaceFolder}/src",
             "console": "internalConsole",
             "stopAtEntry": false,
             "env": {
                 "DOTNET_ENVIRONMENT": "Development",
-                "Category": "OutnetCoats",
                 "Headless": "false",
             }
         },

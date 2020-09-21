@@ -128,9 +128,14 @@ namespace coach_bags_selenium
 
         public static async Task<IDocument> GetHtml(ChromeDriver driver, string url)
         {
+            driver.Navigate().GoToUrl(url);
+            return await GetHtml(driver);
+        }
+
+        public static async Task<IDocument> GetHtml(ChromeDriver driver)
+        {
             var config = Configuration.Default;
             var context = BrowsingContext.New(config);
-            driver.Navigate().GoToUrl(url);
             var document = await context.OpenAsync(req => req.Content(driver.PageSource));
             return document;
         }
