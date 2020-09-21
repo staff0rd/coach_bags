@@ -27,7 +27,10 @@ const useStyles = makeStyles(theme => ({
   },
   brandName: {
     lineHeight: 1,
-    fontSize: 12,
+    fontSize: 14,
+    [theme.breakpoints.down('sm')]: {
+      fontSize: 12,
+    },
   },
   detail: {
     margin: theme.spacing(1, 0, 0, 0),
