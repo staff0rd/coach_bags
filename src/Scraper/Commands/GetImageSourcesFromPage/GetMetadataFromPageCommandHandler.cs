@@ -25,8 +25,10 @@ namespace coach_bags_selenium
             try
             {
                 var images = request.Category switch {
-                    var x when x.In(Category.OutnetCoats, Category.OutnetShoes) => await GetOutnetImages(request.Url, request.Category),
-                    var x when x.In(Category.FarfetchDresses, Category.FarfetchShoes) => await GetFarfetchImages(request.Url),
+                    var x when x.In(Category.OutnetCoats, Category.OutnetShoes) => await GetOutnet(request.Url, request.Category),
+                    var x when x.In(Category.FarfetchDresses, Category.FarfetchShoes) => await GetFarfetch(request.Url),
+                    var x when x.In(Category.FwrdBags, Category.FwrdDresses, Category.FwrdShoes) => await GetFwrd(request.Url),
+                    var x when x.In(Category.CoachBags) => await GetCoach(request.Url),
                     _ => throw new NotImplementedException(),
                 };
 
@@ -38,7 +40,7 @@ namespace coach_bags_selenium
             }
         }
 
-        private async Task<ProductMetadata> GetFarfetchImages(string url)
+        private async Task<ProductMetadata> GetFarfetch(string url)
         {
             var html = await ScrapeCommandHandler.GetHtml(_driver, url);
             var images = html.QuerySelectorAll("div[data-tstid=slideshow] img")
@@ -55,8 +57,34 @@ namespace coach_bags_selenium
                 Tags = tags,
             };
         }
+        private async Task<ProductMetadata> GetFwrd(string url)
+        {
+            var html = await ScrapeCommandHandler.GetHtml(_driver, url);
 
-        private async Task<ProductMetadata> GetOutnetImages(string url, Category category)
+            var tags = html.QuerySelectorAll("#pdp-details li")
+                .Select(p => p.TextContent.Trim())
+                .ToArray();
+
+            return new ProductMetadata
+            {
+                Tags = tags,
+            };
+        }
+        private async Task<ProductMetadata> GetCoach(string url)
+        {
+            var html = await ScrapeCommandHandler.GetHtml(_driver, url);
+
+            var tags = html.QuerySelectorAll(".d-none.features li")
+                .Select(p => p.TextContent.Trim())
+                .ToArray();
+
+            return new ProductMetadata
+            {
+                Tags = tags,
+            };
+        }
+
+        private async Task<ProductMetadata> GetOutnet(string url, Category category)
         {
             _driver.Navigate().GoToUrl(url);
             var json = _driver.ExecuteScript("return JSON.stringify(window.state.pdp.detailsState.response.body.products)").ToString();
