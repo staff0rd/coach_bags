@@ -1,0 +1,17 @@
+{
+  "name": "bags",
+  "version": "0.1.0",
+  "description": "Tweets women's leather goods to [@BagsOnSale](https://twitter.com/bagsonsale)",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/staff0rd/bags.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/staff0rd/bags/issues"
+  },
+  "homepage": "https://github.com/staff0rd/bags#readme"
+}
