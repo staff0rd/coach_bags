@@ -2,6 +2,8 @@ using System;
 using Xunit;
 using coach_bags_selenium;
 using Shouldly;
+using coach_bags_selenium.Data;
+using System.Collections.Generic;
 
 namespace Test
 {
@@ -44,5 +46,24 @@ namespace Test
         {
             _generator.Generate(input).ShouldBe(expected);
         }
+                
+        [Theory]
+        [MemberData(nameof(ProductTypes))]
+        public void Should_convert_product_types(ProductCategory category, string hashtag)
+        {
+            hashtag.ShouldBe($"#{category.ProductType.ToString().ToLower()}");
+        }
+
+        public static IEnumerable<object[]> ProductTypes => new List<object[]>
+        {
+            new object[] { ProductCategory.CoachBags, "#bags" },
+            new object[] { ProductCategory.FwrdShoes, "#shoes" },
+            new object[] { ProductCategory.FwrdDresses, "#dresses" },
+            new object[] { ProductCategory.FwrdBags, "#bags" },
+            new object[] { ProductCategory.OutnetCoats, "#coats" },
+            new object[] { ProductCategory.FarfetchDresses, "#dresses" },
+            new object[] { ProductCategory.FarfetchShoes, "#shoes" },
+            new object[] { ProductCategory.OutnetShoes, "#shoes" },
+        };
     }
 }

@@ -23,12 +23,12 @@ namespace coach_bags_selenium
             Console.WriteLine(Image);
         }
 
-        public coach_bags_selenium.Data.Product AsEntity(Category category) => new Data.Product
+        public coach_bags_selenium.Data.Product AsEntity(ProductCategory category) => new Data.Product
         {
             Link = Link,
             Name = Name,
             Brand = Brand,
-            Category = category,
+            CategoryId = category.Id,
             SalePrice = SalePrice,
             Price = Price,
             Savings = Savings,

@@ -149,10 +149,10 @@ namespace coach_bags_selenium.Farfetch
         [JsonProperty("properties")]
         public Properties Properties { get; set; }
         
-        public Data.Product ToEntity(Data.Category category) => new Data.Product
+        public Data.Product ToEntity(Data.ProductCategory category) => new Data.Product
         {
             Brand = Brand.Name,
-            Category = category,
+            CategoryId = category.Id,
             Id = Id.ToString(),
             Image = Images.CutOut.ToString(),
             Link = $"https://www.farfetch.com{Url}",

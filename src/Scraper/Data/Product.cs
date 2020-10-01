@@ -30,8 +30,13 @@ namespace coach_bags_selenium.Data
 
         [JsonIgnore]
         public string Image { get; set; }
-        public Category Category { get; set; }
+        
+        [Column("category")]
+        public int CategoryId { get; set; }
         public string[] Images {get; set;}
         public string[] Tags { get; set; }
+        [NotMapped]
+        public ProductCategory Category => Enumeration.FromId<ProductCategory>(CategoryId);
+
     }
 }

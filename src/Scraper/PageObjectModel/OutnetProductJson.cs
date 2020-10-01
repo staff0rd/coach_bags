@@ -78,9 +78,9 @@ namespace coach_bags_selenium.Outnet
         [JsonProperty("partNumber")]
         public string PartNumber { get; set; }
 
-        public Data.Product ToEntity(Data.Category category) => new Data.Product {
+        public Data.Product ToEntity(Data.ProductCategory category) => new Data.Product {
             Brand = DesignerNameEn,
-            Category = category,
+            CategoryId = category.Id,
             Id = ProductId,
             Image = Thumbnail,
             Images = Images

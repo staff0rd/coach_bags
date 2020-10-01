@@ -6,7 +6,7 @@ namespace coach_bags_selenium
 {
     public class TweetRandomProductCommand : IRequest
     {
-        public Category Category { get; set; }
+        public ProductCategory Category { get; set; }
         public DateTime Since { get; set; }
         public bool PrepareOnly { get; set; }
     }

@@ -23,7 +23,7 @@ namespace coach_bags_selenium
         typeof(BackfillImagesCommand),
         typeof(ExportProductsCommand),
         typeof(ScrapeAndTweetCommand),
-        typeof(ScrapeUrlCommand),
+        typeof(TestAllCommand),
         typeof(ScrapeCommand))]
     class Program
     {
@@ -76,7 +76,7 @@ namespace coach_bags_selenium
 
         public async Task OnExecute()
         {
-            var category = Enum.Parse<Category>(_config.GetValue<string>("Category"));
+            var category = Enumeration.FromDisplayName<ProductCategory>(_config.GetValue<string>("Category"));
             var count = _config.GetValue<int>("Count");
             
             _data.GetDatabaseContext().Database.Migrate();

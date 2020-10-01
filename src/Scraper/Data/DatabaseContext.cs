@@ -25,10 +25,10 @@ namespace coach_bags_selenium.Data
             => optionsBuilder.UseNpgsql(_connectionString)
                 .UseSnakeCaseNamingConvention();
 
-        public Data.Product ChooseProductToTweet(Category category, DateTime now)
+        public Data.Product ChooseProductToTweet(ProductCategory category, DateTime now)
         {
             var pendingProducts = this.Products
-                .Where(p => p.Category == category)
+                .Where(p => p.CategoryId == category.Id)
                 .Where(p => p.LastUpdatedUtc >= now) // still available on page
                 .Where(p => p.LastPostedUtc == null) // not yet tweeted
                 .ToArray();
@@ -51,7 +51,7 @@ namespace coach_bags_selenium.Data
             {
                 product.LastUpdatedUtc = now;
                 
-                var existing = this.Products.FirstOrDefault(p => p.Id == product.Id && p.Category == product.Category);
+                var existing = this.Products.FirstOrDefault(p => p.Id == product.Id && p.CategoryId == product.CategoryId);
                 if (existing is null)
                 {
                     product.CreatedUtc = now;

@@ -29,27 +29,14 @@ namespace coach_bags_selenium
             _mediator = mediator;
         }
 
-        private Size GetTwitterSize(Category category, int count) => category switch {
-            Category.CoachBags when count == 2 => new Size (1200, 1200),
-            var x when x.In(Category.FwrdBags, Category.FwrdDresses, Category.FwrdShoes, Category.OutnetCoats, Category.OutnetShoes)
-                && count == 2 => new Size (1440, 1440),
-            var x when x.In(Category.FarfetchDresses, Category.FarfetchShoes)
-                && count == 2 => new Size (1334, 1334),
-            _ => new Size (2400, 1256)
-        };
-
         public async Task<GetMetadataCommandResult> Handle(GetMetadataCommand request, CancellationToken cancellationToken)
         {
-            var metadata = await GetMetadata(request.Category, request.Product, request.SourceUrl);
+            var metadata = await _mediator.Send(new GetMetadataFromPageCommand { Product = request.Product });
 
             var sources = await DownloadSources(metadata.Images, request.Now);
+            var twitterSources = request.Product.Category == ProductCategory.FwrdDresses ? sources.Take(3) : sources.Take(2);
             
-            var twitterSources = request.Category switch {
-                Category.FwrdDresses => sources.Take(3),
-                _ => sources.Take(2)
-            };
-
-            var size = GetTwitterSize(request.Category, twitterSources.Count());
+            var size = request.Product.Category.GetTwitterImageSize(twitterSources.Count());
 
             var twitterImages = twitterSources
                 .Select(async (p) => await GetImage(p, size, request.Now))
@@ -96,38 +83,6 @@ namespace coach_bags_selenium
             {
                 return null;
             }
-        }
-
-        private async Task<ProductMetadata> GetMetadata(Category category, Product product, string imageSourceUrl)
-        {
-            if (product != null)
-            {
-                imageSourceUrl = product.Image;
-            }
-
-            var fwrdZoomed = Regex.Replace(imageSourceUrl, @"p\/fw\/.+\/", "p/fw/z/");
-
-            var metadata = await _mediator.Send(new GetMetadataFromPageCommand { Url = product.Link, Category = category });
-
-            return category switch {
-                Category.CoachBags => new ProductMetadata {
-                    Images = Enumerable.Range(1, 9)
-                    .Select(i => Regex.Replace(imageSourceUrl, @"_(\d)\.jpg\?sw=(\d+)&sh=(\d+)", $"_{i}.jpg?sw=1200&sh=1200"))
-                    .ToArray(),
-                    Tags = metadata.Tags,
-                },
-                var x when x.In(
-                    Category.FarfetchDresses,
-                    Category.FarfetchShoes,
-                    Category.OutnetShoes,
-                    Category.OutnetCoats) => metadata,
-                _ => new ProductMetadata {
-                    Images = Enumerable.Range(1, 9)
-                    .Select(i => Regex.Replace(fwrdZoomed, @"_V\d\.jpg", $"_V{i}.jpg"))
-                    .ToArray(),
-                    Tags = metadata.Tags,
-                }
-            };
         }
 
         private async Task<byte[]> GetImage(string src, Size size, DateTime timestamp)
