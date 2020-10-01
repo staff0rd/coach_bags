@@ -42,7 +42,7 @@ namespace coach_bags_selenium.Data
 
             protected override string GetProductsUrl(int pageNumber) => ProductType switch {
                 ProductType.Coats => $"https://www.theoutnet.com/en-au/shop/clothing/coats?pageNumber={pageNumber}",
-                ProductType.Shoes => $"https://www.theoutnet.com/en-au/shop/clearance/shoes/heels?pageNumber={pageNumber}",
+                ProductType.Shoes => $"https://www.theoutnet.com/en-au/shop/shoes/heels?pageNumber={pageNumber}",
                 _ => throw new NotImplementedException(),
             };
 

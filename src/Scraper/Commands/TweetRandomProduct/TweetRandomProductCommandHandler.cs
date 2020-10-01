@@ -65,7 +65,7 @@ namespace coach_bags_selenium
                 await _mediator.Send(new ExportProductsCommand());
             }
             else
-                _logger.LogWarning("Nothing new to tweet");
+                _logger.LogWarning($"{request.Category.DisplayName} has nothing new to tweet");
 
             return Unit.Value;
         }
