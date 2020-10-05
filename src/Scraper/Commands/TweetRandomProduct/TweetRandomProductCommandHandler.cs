@@ -41,13 +41,9 @@ namespace coach_bags_selenium
             if (product != null)
             {
                 product.LastPostedUtc = request.Since;
-                var metadata = await _mediator.Send(new GetMetadataCommand{ Product = product });
+                var metadata = await _mediator.Send(new GetMetadataCommand { Product = product });
                 product.Images = metadata.ImagesS3Uploaded.ToArray();
-                product.Tags = metadata.Tags.ToArray();
-                var brandHashtag = _hashtags.Generate(product.Brand);
-                var categoryHashtag = _hashtags.Generate(Enumeration.FromId<ProductCategory>(product.CategoryId).ProductType.ToString());
-
-                var text = $"{product.Brand} - {product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link} {brandHashtag} {categoryHashtag}";
+                string text = GetTweetText(product, metadata);
 
                 if (!request.PrepareOnly)
                 {
@@ -68,6 +64,22 @@ namespace coach_bags_selenium
                 _logger.LogWarning($"{request.Category.DisplayName} has nothing new to tweet");
 
             return Unit.Value;
+        }
+
+        private string GetTweetText(Product product, GetMetadataCommandResult metadata)
+        {
+            product.Tags = metadata.Tags.ToArray();
+            var brandHashtag = _hashtags.Generate(product.Brand);
+            var categoryHashtag = _hashtags.Generate(Enumeration.FromId<ProductCategory>(product.CategoryId).ProductType.ToString());
+
+            if (product.SavingsPercent > 1)
+            {
+                return $"{product.Brand} - {product.Name} - {product.SavingsPercent}% off, was ${product.Price}, now ${product.SalePrice} {product.Link} {brandHashtag} {categoryHashtag}";
+            }
+            else 
+            {
+                return $"{product.Brand} - {product.Name} - ${product.SalePrice} {product.Link} {brandHashtag} {categoryHashtag}";
+            } 
         }
 
         private static IEnumerable<IMedia> UploadImagesToTwitter(IEnumerable<byte[]> images)

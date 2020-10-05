@@ -14,9 +14,8 @@ namespace coach_bags_selenium
     {
         private readonly ChromeDriver _driver;
 
-        public GetMetadataFromPageCommandHandler(
-            ChromeDriver driver
-        ) {
+        public GetMetadataFromPageCommandHandler(ChromeDriver driver)
+        {
             _driver = driver;
         }
 

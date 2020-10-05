@@ -24,6 +24,7 @@ namespace coach_bags_selenium
         typeof(ExportProductsCommand),
         typeof(ScrapeAndTweetCommand),
         typeof(TestAllCommand),
+        typeof(TweetRandomProductCommand),
         typeof(ScrapeCommand))]
     class Program
     {
