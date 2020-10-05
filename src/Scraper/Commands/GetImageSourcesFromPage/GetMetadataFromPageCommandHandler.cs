@@ -24,6 +24,8 @@ namespace coach_bags_selenium
             try
             {
                 var metadata = await request.Product.Category.GetProductMetadataFromUrl(_driver, request.Product);
+                if (!metadata.Images.Any())
+                    throw new InvalidOperationException("No images found");
                 return metadata;
             }
             finally

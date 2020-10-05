@@ -66,10 +66,6 @@ namespace coach_bags_selenium.Data
                     .Select(i => i.GetAttribute("src")
                         .Replace("60x68", "1556x1770")
                     ).ToArray();
-
-
-
-
                 
                 var tags = html.QuerySelectorAll("li[class^=desc]")
                     .Select(p => p.TextContent.Trim())
