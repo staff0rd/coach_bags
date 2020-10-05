@@ -34,6 +34,8 @@ namespace coach_bags_selenium
             var metadata = await _mediator.Send(new GetMetadataFromPageCommand { Product = request.Product });
 
             var sources = await DownloadSources(metadata.Images, request.Now);
+            if (!sources.Any())
+                throw new InvalidOperationException("Couldn't download any images");
             var twitterSources = request.Product.Category == ProductCategory.FwrdDresses ? sources.Take(3) : sources.Take(2);
             
             var size = request.Product.Category.GetTwitterImageSize(twitterSources.Count());
