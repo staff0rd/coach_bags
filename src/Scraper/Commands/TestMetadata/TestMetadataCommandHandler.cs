@@ -21,7 +21,7 @@ public class TestMetadataCommandHandler : IRequestHandler<TestMetadataCommand>
             .Where(p => p.CategoryId == request.Category.Id && p.Id == request.Id)
             .First();
         
-        var result = await _mediator.Send(new GetMetadataFromPageCommand {Product = product });
+        var result = await _mediator.Send(new GetMetadataCommand {Product = product });
 
         return Unit.Value;
     }

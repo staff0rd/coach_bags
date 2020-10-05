@@ -18,6 +18,7 @@ namespace coach_bags_selenium.Data
         public static readonly ProductCategory OutnetShoes = new OutnetCategory(7, ProductType.Shoes);
         public static readonly ProductCategory ToryBurchBags = new ToryBurchCategory(8, ProductType.Bags);
         public static readonly ProductCategory FerragamoBags = new FerragamoCategory(9, ProductType.Bags);
+        public static readonly ProductCategory RebeccaMinkoffBags = new RebeccaMinkoffCategory(10, ProductType.Bags);
 
         public ProductType ProductType { get; private set; }
 

@@ -60,21 +60,5 @@ namespace coach_bags_selenium
 
             return Unit.Value;
         }
-
-        public static async Task<IDocument> GetHtml(ChromeDriver driver, string url, int seconds = 0)
-        {
-            driver.Navigate().GoToUrl(url);
-            await Task.Delay(seconds * 1000);
-            return await GetHtml(driver.PageSource);
-        }
-
-        public static async Task<IDocument> GetHtml(string pageSource)
-        {
-            var config = Configuration.Default;
-            var context = BrowsingContext.New(config);
-            var document = await context.OpenAsync(req => req.Content(pageSource));
-            return document;
-        }
-
     }
 }

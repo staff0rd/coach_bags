@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using AngleSharp.Html;
 using AngleSharp.Html.Parser;
-using coach_bags_selenium.Farfetch;
 using coach_bags_selenium.Ferragamo;
 using Flurl.Http;
 using OpenQA.Selenium.Chrome;
@@ -60,7 +58,7 @@ namespace coach_bags_selenium.Data
 
             public async override Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
             {
-                var html = await ScrapeCommandHandler.GetHtml(driver, product.Link, 2);
+                var html = await HtmlHelpers.GetHtml(driver, product.Link, 2);
                 
                 var images = html.QuerySelectorAll("img[class*=product-gallery]")
                     .Select(i => i.GetAttribute("data-lazy") ?? i.GetAttribute("src"))

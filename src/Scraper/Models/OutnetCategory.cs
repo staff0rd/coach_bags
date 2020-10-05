@@ -27,7 +27,7 @@ namespace coach_bags_selenium.Data
                     .SelectMany(p => p.ToEntity(this).Images)
                     .ToArray();
 
-                var html = await ScrapeCommandHandler.GetHtml(driver.PageSource);
+                var html = await HtmlHelpers.GetHtml(driver.PageSource);
 
                 var tags = html.QuerySelectorAll("#TECHNICAL_DESCRIPTION p")
                     .Select(p => p.TextContent.Trim())

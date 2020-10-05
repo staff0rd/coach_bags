@@ -52,7 +52,7 @@ namespace coach_bags_selenium.Data
 
             public async override Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
             {
-                var html = await ScrapeCommandHandler.GetHtml(driver, product.Link);
+                var html = await HtmlHelpers.GetHtml(driver, product.Link);
 
                 var tags = html.QuerySelectorAll("#pdp-details li")
                     .Select(p => p.TextContent.Trim())
