@@ -130,6 +130,7 @@ namespace coach_bags_selenium.Ferragamo
             Savings = 0,
             Id = UniqueId,
             Image = Image1.ToString(),
+            Edit = category.Edit
         };
     }
 

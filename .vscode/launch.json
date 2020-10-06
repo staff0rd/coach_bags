@@ -17,6 +17,7 @@
             //"args": [ "testmeta", "-c", "RebeccaMinkoffBags", "--id", "HF16ICKC17-champagne"],
             //"args": [ "test"],
             //"args": [ "backfill", "-o",],
+            //"args": [ "export", "-a", "-e", "FwrdDresses"],
             "cwd": "${workspaceFolder}/src",
             "console": "internalConsole",
             "stopAtEntry": false,

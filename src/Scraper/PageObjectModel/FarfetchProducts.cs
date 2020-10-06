@@ -160,6 +160,7 @@ namespace coach_bags_selenium.Farfetch
             Price = PriceInfo.InitialPrice,
             SalePrice = PriceInfo.FinalPrice,
             Savings = PriceInfo.InitialPrice - PriceInfo.FinalPrice,
+            Edit = category.Edit
         };
     }
 

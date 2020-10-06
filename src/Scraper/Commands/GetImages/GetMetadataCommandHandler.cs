@@ -33,7 +33,7 @@ namespace coach_bags_selenium
         {
             var metadata = await _mediator.Send(new GetMetadataFromPageCommand { Product = request.Product });
 
-            var sources = await DownloadSources(metadata.Images, request.Now);
+            var sources = await DownloadSources(metadata.Images, request.Now, request.Product.Category.Edit);
             if (!sources.Any())
                 throw new InvalidOperationException("Couldn't download any images");
             var twitterSources = request.Product.Category == ProductCategory.FwrdDresses ? sources.Take(3) : sources.Take(2);
@@ -41,7 +41,7 @@ namespace coach_bags_selenium
             var size = request.Product.Category.GetTwitterImageSize(twitterSources.Count());
 
             var twitterImages = twitterSources
-                .Select(async (p) => await GetImage(p, size, request.Now))
+                .Select(async (p) => await GetImage(p, size, request.Now, request.Product.Category.Edit))
                 .Select(p => p.Result)
                 .ToList();
 
@@ -53,14 +53,14 @@ namespace coach_bags_selenium
             };
         }
 
-        private async Task<IEnumerable<string>> DownloadSources(IEnumerable<string> sources, DateTime timestamp)
+        private async Task<IEnumerable<string>> DownloadSources(IEnumerable<string> sources, DateTime timestamp, Edit edit)
         {
             var downloaded = new List<string>();
             int index = 1;
             foreach (var source in sources)
             {
                 var name = $"{timestamp:HHmm}-{index}.jpg";
-                var fileName = await Download(source, name, timestamp);
+                var fileName = await Download(source, name, timestamp, edit);
                 if (fileName != null)
                     downloaded.Add(fileName);
                 else
@@ -70,7 +70,7 @@ namespace coach_bags_selenium
             return downloaded;
         }
 
-        private async Task<string> Download(string source, string downloadFileName, DateTime timestamp)
+        private async Task<string> Download(string source, string downloadFileName, DateTime timestamp, Edit edit)
         {
             try
             {
@@ -79,22 +79,21 @@ namespace coach_bags_selenium
                     .DownloadFileAsync(LOCAL_DIRECTORY, downloadFileName);
 
                 _logger.LogInformation($"Downloaded {source}");
-                return await S3Upload(Path.Combine(LOCAL_DIRECTORY, downloadFileName), timestamp);
+                return await S3Upload(Path.Combine(LOCAL_DIRECTORY, downloadFileName), timestamp, edit);
             }
             catch
             {
                 return null;
             }
         }
-
-        private async Task<byte[]> GetImage(string src, Size size, DateTime timestamp)
+        private async Task<byte[]> GetImage(string src, Size size, DateTime timestamp, Edit edit)
         {
-            var imageFilePath = await PrepareImageForTwitter(src, size, timestamp);
+            var imageFilePath = await PrepareImageForTwitter(src, size, timestamp, edit);
             byte[] image = File.ReadAllBytes(Path.Combine(LOCAL_DIRECTORY, Path.GetFileName(imageFilePath)));
             return image;
         }
 
-        private async Task<string> PrepareImageForTwitter(string file, Size size, DateTime timestamp)
+        private async Task<string> PrepareImageForTwitter(string file, Size size, DateTime timestamp, Edit edit)
         {
             file = Path.GetFileName(file);
             var outputPath = Path.Combine(LOCAL_DIRECTORY, file).Replace(".jpg", "-twitter.jpg");
@@ -129,16 +128,16 @@ namespace coach_bags_selenium
                 newImage.Save(outputPath);
             }
             
-            return await S3Upload(outputPath, timestamp);
+            return await S3Upload(outputPath, timestamp, edit);
         }
 
-        private async Task<string> S3Upload(string filePath, DateTime timestamp)
+        private async Task<string> S3Upload(string filePath, DateTime timestamp, Edit edit)
         {
             var fileName = Path.GetFileName(filePath);
             var s3FileName = $"{timestamp:yyyy/MM/dd}/{fileName}";
             return await _mediator.Send(new S3UploadCommand {
                 SourceFilePath = filePath,
-                TargetDirectory = "images",
+                TargetDirectory = $"{edit}/images",
                 TargetFileName = s3FileName,
             });
         }

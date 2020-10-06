@@ -92,6 +92,7 @@ namespace coach_bags_selenium.Outnet
             Price = Price.WasPrice.Amount / Price.WasPrice.Divisor,
             SalePrice = Price.SellingPrice.Amount / Price.SellingPrice.Divisor,
             Savings = Price.WasPrice.Amount / Price.WasPrice.Divisor - Price.SellingPrice.Amount / Price.SellingPrice.Divisor,
+            Edit = category.Edit,
         };
     }
 

@@ -58,7 +58,7 @@ namespace coach_bags_selenium
                 _logger.LogInformation($"Tags: {string.Join(", ", product.Tags)}");
                 db.SaveChanges();
 
-                await _mediator.Send(new ExportProductsCommand());
+                await _mediator.Send(new ExportProductsCommand{ Edit = product.Category.Edit });
             }
             else
                 _logger.LogWarning($"{request.Category.DisplayName} has nothing new to tweet");

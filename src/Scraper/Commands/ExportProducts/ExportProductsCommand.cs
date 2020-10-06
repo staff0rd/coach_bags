@@ -12,5 +12,8 @@ namespace coach_bags_selenium
 
         [Option("-a|--all", CommandOptionType.NoValue)]
         public bool All { get; set; }
+
+        [Option("-e|--edit", CommandOptionType.SingleValue)]
+        public Edit Edit { get; set; }
     }
 }

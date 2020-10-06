@@ -11,7 +11,6 @@ using Microsoft.Extensions.Logging;
 
 namespace coach_bags_selenium
 {
-    [Command("export")]
     public class ExportProductsCommandHandler : IRequestHandler<ExportProductsCommand> {
         private readonly DataFactory _data;
         private readonly ILogger<ExportProductsCommandHandler> _logger;
@@ -31,7 +30,8 @@ namespace coach_bags_selenium
         private string QUERY = @"
             with cte as (
                 SELECT * FROM products
-                WHERE last_posted_utc IS NOT NULL
+                WHERE edit = @edit 
+                AND last_posted_utc IS NOT NULL
                 ORDER BY last_posted_utc 
             )
             SELECT *,
@@ -45,7 +45,7 @@ namespace coach_bags_selenium
         {
             var pages = new List<Page>();
 
-            var records = await GetProducts();
+            var records = await GetProducts(request.Edit);
 
             var indexPageSize = records.Count() % request.PageSize is var ix && ix == 0 ? request.PageSize : ix;
 
@@ -53,10 +53,12 @@ namespace coach_bags_selenium
             
             _logger.LogInformation($"Total records: {records.Count()}, total pages: {totalPages}");
 
-            pages.AddRange(new[] {
-                new Page { Name = "index.json", Products = records.Take(indexPageSize).ToArray() },
-                GetPage(records, request.PageSize, indexPageSize),
-            });
+            pages.Add(new Page { Name = "index.json", Products = records.Take(indexPageSize).ToArray() });
+
+            if (records.Count() > indexPageSize)
+            {
+                pages.Add(GetPage(records, request.PageSize, indexPageSize));
+            }
 
             if (request.All)
             {
@@ -84,7 +86,7 @@ namespace coach_bags_selenium
                 File.WriteAllText(jsonFile, json);
                 await _mediator.Send(new S3UploadCommand {
                     SourceFilePath = jsonFile,
-                    TargetDirectory = "json",
+                    TargetDirectory = $"{request.Edit}/json",
                     TargetFileName = page.Name,
                  });
             }
@@ -101,11 +103,13 @@ namespace coach_bags_selenium
             };
         }
 
-        private async Task<IEnumerable<LinkedProduct>> GetProducts()
+        private async Task<IEnumerable<LinkedProduct>> GetProducts(Edit edit)
         {
             using (var connection = _data.GetConnection())
             {
-                var result = await connection.QueryAsync<LinkedProduct>(QUERY);
+                var parameters = new DynamicParameters();
+                parameters.Add("@edit", edit, System.Data.DbType.Int16);
+                var result = await connection.QueryAsync<LinkedProduct>(QUERY, parameters);
                 return result;
             }
         }

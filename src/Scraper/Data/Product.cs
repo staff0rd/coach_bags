@@ -37,6 +37,6 @@ namespace coach_bags_selenium.Data
         public string[] Tags { get; set; }
         [NotMapped]
         public ProductCategory Category => Enumeration.FromId<ProductCategory>(CategoryId);
-
+        public Edit Edit { get; set; }
     }
 }

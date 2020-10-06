@@ -42,7 +42,8 @@ namespace coach_bags_selenium
             Savings = Savings,
             Id = Id,
             Image = Image(category),
-            CategoryId = category.Id
+            CategoryId = category.Id,
+            Edit = category.Edit,
         };
     }
 }

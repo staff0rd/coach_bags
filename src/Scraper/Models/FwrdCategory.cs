@@ -15,7 +15,7 @@ namespace coach_bags_selenium.Data
         private class FwrdCategory : ProductCategory
         {
             private readonly bool IsSale;
-            public FwrdCategory(int id, ProductType productType, bool isSale) : base(id, $"Fwrd{productType.ToString()}" + (isSale ? "" : "All"), productType) 
+            public FwrdCategory(int id, ProductType productType, bool isSale, Edit edit = Edit.BagsOnSale) : base(id, $"Fwrd{productType.ToString()}" + (isSale ? "" : "All"), productType, edit) 
             {
                 IsSale = isSale;
             }

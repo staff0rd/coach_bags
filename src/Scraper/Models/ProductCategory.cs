@@ -19,9 +19,10 @@ namespace coach_bags_selenium.Data
         public static readonly ProductCategory ToryBurchBags = new ToryBurchCategory(8, ProductType.Bags);
         public static readonly ProductCategory FerragamoBags = new FerragamoCategory(9, ProductType.Bags);
         public static readonly ProductCategory RebeccaMinkoffBags = new RebeccaMinkoffCategory(10, ProductType.Bags);
-        public static readonly ProductCategory FwrdDressesAll = new FwrdCategory(11, ProductType.Dresses, false);
+        public static readonly ProductCategory FwrdDressesAll = new FwrdCategory(11, ProductType.Dresses, false, Edit.FwrdDresses);
 
         public ProductType ProductType { get; private set; }
+        public Edit Edit { get; protected set; }
 
         public virtual string GetProductImageClass()
         {
@@ -46,9 +47,10 @@ namespace coach_bags_selenium.Data
         public virtual Size GetTwitterImageSize(int count) => new Size (2400, 1256);
 
         public ProductCategory() { }
-        public ProductCategory(int value, string displayName, ProductType productType) : base(value, displayName)
+        public ProductCategory(int value, string displayName, ProductType productType, Edit edit = Edit.BagsOnSale) : base(value, displayName)
         {
             ProductType = productType;
+            Edit = edit;
         }
     }
 
