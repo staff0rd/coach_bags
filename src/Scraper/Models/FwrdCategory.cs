@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AngleSharp;
 using OpenQA.Selenium.Chrome;
 using SixLabors.ImageSharp;
+using Flurl.Http;
 
 namespace coach_bags_selenium.Data
 {
@@ -13,7 +14,11 @@ namespace coach_bags_selenium.Data
     {
         private class FwrdCategory : ProductCategory
         {
-            public FwrdCategory(int id, ProductType productType) : base(id, $"Fwrd{productType.ToString()}", productType) {}
+            private readonly bool IsSale;
+            public FwrdCategory(int id, ProductType productType, bool isSale) : base(id, $"Fwrd{productType.ToString()}" + (isSale ? "" : "All"), productType) 
+            {
+                IsSale = isSale;
+            }
 
             public override Size GetTwitterImageSize(int count)
             {
@@ -21,30 +26,68 @@ namespace coach_bags_selenium.Data
                 return base.GetTwitterImageSize(count);
             }
             
-            protected override string GetProductsUrl(int pageNumber) => ProductType switch {
-                ProductType.Shoes => "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3FpageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-shoes%2Fba4e3d%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DShoes&currentPageSortBy=newestMarkdown&useLargerImages=true&outfitViewSession=false&showBagSize=false&lookfwrd=false",
-                ProductType.Dresses => "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3Fnavsrc%3Dleft%26pageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-dresses%2F28a4b1%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DDresses&currentPageSortBy=newestMarkdown&useLargerImages=false&outfitViewSession=false&showBagSize=false&lookfwrd=false",
-                ProductType.Bags => "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3Fnavsrc%3Dleft%26pageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-bags%2F01ef40%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DBags&currentPageSortBy=newestMarkdown&useLargerImages=true&outfitViewSession=false&showBagSize=false&lookfwrd=false",
-                _ => throw new NotImplementedException(),
-            };
+            protected override string GetProductsUrl(int pageNumber)
+            {
+                if (IsSale)
+                {                 
+                    return ProductType switch {
+                        ProductType.Shoes => "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3FpageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-shoes%2Fba4e3d%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DShoes&currentPageSortBy=newestMarkdown&useLargerImages=true&outfitViewSession=false&showBagSize=false&lookfwrd=false",
+                        ProductType.Dresses => "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3Fnavsrc%3Dleft%26pageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-dresses%2F28a4b1%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DDresses&currentPageSortBy=newestMarkdown&useLargerImages=false&outfitViewSession=false&showBagSize=false&lookfwrd=false",
+                        ProductType.Bags => "https://www.fwrd.com/fw/content/products/lazyLoadProductsForward?currentPlpUrl=https%3A%2F%2Fwww.fwrd.com%2Ffw%2FCategory.jsp%3Fnavsrc%3Dleft%26pageNum%3D1%26sortBy%3DnewestMarkdown%26aliasURL%3Dsale-category-bags%2F01ef40%26site%3Df%26%26n%3Ds%26s%3Dc%26c%3DBags&currentPageSortBy=newestMarkdown&useLargerImages=true&outfitViewSession=false&showBagSize=false&lookfwrd=false",
+                        _ => throw new NotImplementedException(),
+                    };
+                } else 
+                {
+                    return ProductType switch {
+                        ProductType.Dresses => $"https://www.fwrd.com/fw/productsinc.jsp?&site=f&aliasURL=category-dresses%2Fa8e981&s=c&c=Dresses&navsrc=clothing&pageNum={pageNumber}&sortBy=newest",
+                        _ => throw new NotImplementedException()
+                    };
+                }
+            }
 
             public async override Task<IEnumerable<Product>> GetProducts(ChromeDriver driver, int maxCount)
             {
-                string url = GetProductsUrl(-1);
-                driver.Navigate().GoToUrl(url);
+                if (IsSale)
+                {
+                    string url = GetProductsUrl(-1);
+                    return await GetPage(driver, url);
+                } else
+                {
+                    var products = new List<Product>();
+                    var pageNumber = 0;
+                    IEnumerable<Product> pageProducts;
+                    var loop = 0;
+                    do {
+                        loop++;
+                        var productCountPrior = products.Count;
+                        var url = GetProductsUrl(++pageNumber);
+                        pageProducts = await GetPage(driver, url);
+                        foreach ( var product in pageProducts)
+                        {
+                            if (!products.Select(p => p.Id).Contains(product.Id))
+                            {
+                                products.Add(product);
+                            }
+                        }
+                        if (productCountPrior == products.Count)
+                            break;
+                    } while (true);
+                    return products;
+                }
+            }
 
-                var text = driver.PageSource;
-                var pre = driver.FindElementByCssSelector("pre").Text;
+            private async Task<IEnumerable<Product>> GetPage(ChromeDriver driver, string url)
+            {
+                var html = await url.GetStringAsync();
                 var config = AngleSharp.Configuration.Default;
                 var context = BrowsingContext.New(config);
-                var document = await context.OpenAsync(req => req.Content(pre));
-                var ps = document.QuerySelectorAll(".products-grid__item");
+                var document = await context.OpenAsync(req => req.Content(html));
 
-                var products = ps
+                var products = document.QuerySelectorAll(".products-grid__item")
                     .Select(p => new ForwardProduct(p))
-                    .Where(p => p.SalePrice.HasValue)
+                    .Where(p => !IsSale || p.SalePrice.HasValue)
                     .Select(p => p.AsEntity(this))
-                    .Where(p => p.SalePrice < 1000)
+                    .Where(p => !IsSale || p.SalePrice < 1000)
                     .ToList();
 
                 return products;
@@ -71,10 +114,16 @@ namespace coach_bags_selenium.Data
 
             public override string GetProductImageClass()
             {
-                return ProductType switch {
-                    ProductType.Bags => ".product__image-main-view",
-                    _ => ".product__image-alt-view",
-                };
+                if (IsSale) {
+                    return ProductType switch {
+                        ProductType.Bags => ".product__image-main-view",
+                        _ => ".product__image-alt-view",
+                    };
+                } 
+                else
+                {
+                    return ".product__image-main-view";
+                }
             }
         }
     }

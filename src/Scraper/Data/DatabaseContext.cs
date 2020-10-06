@@ -25,6 +25,11 @@ namespace coach_bags_selenium.Data
             => optionsBuilder.UseNpgsql(_connectionString)
                 .UseSnakeCaseNamingConvention();
 
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.Entity<Product>().HasKey(p => new { p.Id, p.CategoryId });
+        }
+
         public Data.Product ChooseProductToTweet(ProductCategory category, DateTime now)
         {
             var pendingProducts = this.Products

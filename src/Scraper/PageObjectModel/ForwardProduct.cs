@@ -24,7 +24,8 @@ namespace coach_bags_selenium
         public decimal Price => decimal.Parse(_element.QuerySelectorAll(".price__retail")[0].Text().Replace("AU$ ", "").Replace("original price", "").Trim());
         public decimal Savings => SalePrice.HasValue ? Price - SalePrice.Value : 0;
         public string Id => _element.QuerySelectorAll(".product__image-container")[0].GetAttribute("data-code");
-        public string Image(ProductCategory category) => _element.QuerySelectorAll(category.GetProductImageClass())[0].GetAttribute("data-lazy-src");
+        public string Image(ProductCategory category) => _element
+            .QuerySelectorAll(category.GetProductImageClass())[0].GetAttribute("data-lazy-src");
         
         public ForwardProduct(IElement element)
         {
@@ -36,7 +37,7 @@ namespace coach_bags_selenium
             Link = Link,
             Brand = Brand,
             Name = Name,
-            SalePrice = SalePrice.Value,
+            SalePrice = SalePrice ?? Price,
             Price = Price,
             Savings = Savings,
             Id = Id,
