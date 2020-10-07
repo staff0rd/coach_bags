@@ -20,6 +20,7 @@ namespace coach_bags_selenium.Data
         public static readonly ProductCategory FerragamoBags = new FerragamoCategory(9, ProductType.Bags);
         public static readonly ProductCategory RebeccaMinkoffBags = new RebeccaMinkoffCategory(10, ProductType.Bags);
         public static readonly ProductCategory FwrdDressesAll = new FwrdCategory(11, ProductType.Dresses, false, Edit.FwrdDresses);
+        public static readonly ProductCategory IconicDresses = new IconicCategory(12, ProductType.Dresses, Edit.IconicDresses);
 
         public ProductType ProductType { get; private set; }
         public Edit Edit { get; protected set; }
