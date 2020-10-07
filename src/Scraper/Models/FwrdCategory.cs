@@ -50,38 +50,17 @@ namespace coach_bags_selenium.Data
                 if (IsSale)
                 {
                     string url = GetProductsUrl(-1);
-                    return await GetPage(driver, url);
+                    return await GetPage(url);
                 } else
                 {
-                    var products = new List<Product>();
-                    var pageNumber = 0;
-                    IEnumerable<Product> pageProducts;
-                    var loop = 0;
-                    do {
-                        loop++;
-                        var productCountPrior = products.Count;
-                        var url = GetProductsUrl(++pageNumber);
-                        pageProducts = await GetPage(driver, url);
-                        foreach ( var product in pageProducts)
-                        {
-                            if (!products.Select(p => p.Id).Contains(product.Id))
-                            {
-                                products.Add(product);
-                            }
-                        }
-                        if (productCountPrior == products.Count)
-                            break;
-                    } while (true);
-                    return products;
+                    return await HtmlHelpers.LoopPages(5, GetProductsUrl, GetPage);
                 }
             }
 
-            private async Task<IEnumerable<Product>> GetPage(ChromeDriver driver, string url)
+            private async Task<IEnumerable<Product>> GetPage(string url)
             {
-                var html = await url.GetStringAsync();
-                var config = AngleSharp.Configuration.Default;
-                var context = BrowsingContext.New(config);
-                var document = await context.OpenAsync(req => req.Content(html));
+                var source = await url.GetStringAsync();
+                var document = await HtmlHelpers.GetDocumentFromSource(source);
 
                 var products = document.QuerySelectorAll(".products-grid__item")
                     .Select(p => new ForwardProduct(p))
