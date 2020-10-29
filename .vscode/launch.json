@@ -12,7 +12,7 @@
             "program": "${workspaceFolder}/src/Scraper/bin/Debug/netcoreapp3.1/coach_bags_selenium.dll",
             //"args": [ "tweet", "-p", "-c", "OutnetCoats", "--count=30"],
             //"args": [ "tweet", "-p", "-c", "FarfetchDresses", "--count=30"],
-            "args": [ "tweet", "-p", "-c", "IconicDresses", "--count=300"],
+            "args": [ "tweetonly", "-p", "-c", "PradaBags", "--id=1BP024_2B0X_F0633_V_CZI"],
             //"args": [ "tweetonly", "-p", "-c", "ToryBurchBags", "-s=2020-10-01"],
             //"args": [ "testmeta", "-c", "RebeccaMinkoffBags", "--id", "HF16ICKC17-champagne"],
             //"args": [ "test"],

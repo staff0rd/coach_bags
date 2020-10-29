@@ -36,7 +36,8 @@ namespace coach_bags_selenium
         public async Task<Unit> Handle(TweetRandomProductCommand request, CancellationToken cancellationToken)
         {
             var db = _data.GetDatabaseContext();
-            var product = db.ChooseProductToTweet(request.Category, request.Since);
+
+            var product = GetProduct(request, db);
 
             if (product != null)
             {
@@ -58,12 +59,20 @@ namespace coach_bags_selenium
                 _logger.LogInformation($"Tags: {string.Join(", ", product.Tags)}");
                 db.SaveChanges();
 
-                await _mediator.Send(new ExportProductsCommand{ Edit = product.Category.Edit });
+                await _mediator.Send(new ExportProductsCommand { Edit = product.Category.Edit });
             }
             else
                 _logger.LogWarning($"{request.Category.DisplayName} has nothing new to tweet");
 
             return Unit.Value;
+        }
+
+        private static Product GetProduct(TweetRandomProductCommand request, DatabaseContext db)
+        {
+            if (string.IsNullOrEmpty(request.ProductId))
+                return db.ChooseProductToTweet(request.Category, request.Since);
+            else
+                return db.Products.FirstOrDefault(p => p.CategoryId == request.Category.Id && p.Id == request.ProductId);
         }
 
         private string GetTweetText(Product product, GetMetadataCommandResult metadata)

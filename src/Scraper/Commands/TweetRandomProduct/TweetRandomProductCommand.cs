@@ -19,5 +19,8 @@ namespace coach_bags_selenium
         public DateTime Since { get; set; }
         [Option("-p|--prepare-only", CommandOptionType.NoValue)]
         public bool PrepareOnly { get; set; }
+
+        [Option("--id", CommandOptionType.SingleOrNoValue)]
+        public string ProductId { get; set; }
     }
 }
