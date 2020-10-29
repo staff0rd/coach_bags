@@ -33,10 +33,10 @@ public static class HtmlHelpers
         return products;
     }
 
-    public static async Task<IDocument> GetHtml(ChromeDriver driver, string url, int seconds = 0)
+    public static async Task<IDocument> GetHtml(ChromeDriver driver, string url, int waitSeconds = 0)
         {
             driver.Navigate().GoToUrl(url);
-            await Task.Delay(seconds * 1000);
+            await Task.Delay(waitSeconds * 1000);
             return await GetDocumentFromSource(driver.PageSource);
         }
 
