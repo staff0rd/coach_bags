@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using AngleSharp.Html.Parser;
-using coach_bags_selenium.Ferragamo;
+using System.Web;
+using coach_bags_selenium.MichaelKors;
 using Flurl.Http;
 using OpenQA.Selenium.Chrome;
 using SixLabors.ImageSharp;
@@ -13,31 +12,30 @@ namespace coach_bags_selenium.Data
 {
     public partial class ProductCategory
     {
-        private class FerragamoCategory : ProductCategory
+        private class MichaelKorsCategory : ProductCategory
         {
-            public FerragamoCategory(int id, ProductType productType) : base(id, $"Ferragamo{productType.ToString()}", productType, Edit.LegitBags) {}
+            public MichaelKorsCategory(int id, ProductType productType, Edit edit) : base(id, $"MichaelKors{productType.ToString()}", productType, edit) {}
 
             public override Size GetTwitterImageSize(int count)
             {
-                if (count == 2) return new Size (1002, 1002);
+                if (count == 2) return new Size (1347, 1347);
                 return base.GetTwitterImageSize(count);
             }
             
             protected override string GetProductsUrl(int pageNumber) => ProductType switch { 
-                ProductType.Bags => $"https://www.ferragamo.com/wcs/resources/store/33751/category_custom/products/byId/3074457345616810885?langId=-24&isClp=false&imgSwap=5&parentCategoryRn=3074457345616810881&catalogId=38554&pageNumber={pageNumber}",
+                ProductType.Bags => $"https://www.michaelkors.global/en_AU/server/data/guidedSearch?stateIdentifier=_/N-10qbalf&Ns=NewArrival|0&No={(pageNumber-1)*40}",
                 _ => throw new NotImplementedException(),
             };
 
-            private async Task<Product[]> GetPage(int pageNumber) 
+            private async Task<IEnumerable<Product>> GetPage(string url) 
             {
-                var url = GetProductsUrl(pageNumber);
                 try {
                     var products = await url
                     .WithHeader("Accept", "application/json")
-                        .GetJsonAsync<FerragamoProducts>();
+                        .GetJsonAsync<MichaelKorsProducts>();
                     
                     return products
-                        .Products
+                        .Result.ProductList
                         .Select(p => p.AsEntity(this))
                         .ToArray();
                 }
@@ -50,28 +48,23 @@ namespace coach_bags_selenium.Data
 
             public override async Task<IEnumerable<Product>> GetProducts(ChromeDriver driver, int maxCount)
             {
-                var pageNumber = 0;
-                var products = new List<Product> (await GetPage(++pageNumber));
-                products.AddRange(await GetPage(++pageNumber));
-                return products;
+                return await HtmlHelpers.LoopPages(10, GetProductsUrl, GetPage);
             }
 
             public async override Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
             {
                 var html = await HtmlHelpers.GetHtml(driver, product.Link, 2);
                 
-                var images = html.QuerySelectorAll("img[class*=product-gallery]")
-                    .Select(i => i.GetAttribute("data-lazy") ?? i.GetAttribute("src"))
-                    .GroupBy(p => p)
-                    .OrderByDescending(g => g.Count())
-                    .Select(g => g.First())
-                    .OrderBy(p => p)
+                var images = html.QuerySelectorAll(".pdp-gallery button img")
+                    .Select(i => "https:" + i.GetAttribute("src"))
+                    .Select(p => new Uri(p).GetLeftPart(UriPartial.Path).ToString() + "?wid=1000&op_sharpen=1&resMode=sharp2&qlt=100")
                     .ToArray();
-                
-                var parser = new HtmlParser();
 
-                var tags = html.QuerySelectorAll("[class^=product-detail__list] li:not([class])")
-                    .Select(p => Regex.Replace(p.TextContent, @"\s+", " ").Trim())
+                var tags = html.QuerySelector(".detail")
+                    .TextContent
+                    .Replace("•", "")
+                    .Split('\n')
+                    .Select(p => p.Trim())
                     .ToArray();
 
                 return new ProductMetadata

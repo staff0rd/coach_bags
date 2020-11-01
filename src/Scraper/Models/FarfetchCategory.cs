@@ -14,7 +14,7 @@ namespace coach_bags_selenium.Data
     {
         private class FarfetchCategory : ProductCategory
         {
-            public FarfetchCategory(int id, ProductType productType) : base(id, $"Farfetch{productType.ToString()}", productType) {}
+            public FarfetchCategory(int id, ProductType productType) : base(id, $"Farfetch{productType.ToString()}", productType, Edit.BagsOnSale) {}
 
             public override Size GetTwitterImageSize(int count)
             {

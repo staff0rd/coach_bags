@@ -11,7 +11,7 @@ namespace coach_bags_selenium.Data
     {
         private class OutnetCategory : ProductCategory
         {
-            public OutnetCategory(int id, ProductType productType) : base(id, $"Outnet{productType.ToString()}", productType) {}
+            public OutnetCategory(int id, ProductType productType) : base(id, $"Outnet{productType.ToString()}", productType, Edit.BagsOnSale) {}
 
             public override Size GetTwitterImageSize(int count)
             {

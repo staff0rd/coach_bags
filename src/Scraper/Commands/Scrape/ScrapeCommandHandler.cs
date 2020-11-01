@@ -1,18 +1,9 @@
-
-
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AngleSharp;
-using coach_bags_selenium.Data;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using OpenQA.Selenium.Chrome;
-using AngleSharp.Dom;
-using Flurl.Http;
-using coach_bags_selenium.Farfetch;
 
 namespace coach_bags_selenium
 {

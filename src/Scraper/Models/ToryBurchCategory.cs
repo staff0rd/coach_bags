@@ -11,7 +11,7 @@ namespace coach_bags_selenium.Data
     {
         private class ToryBurchCategory : ProductCategory
         {
-            public ToryBurchCategory(int id, ProductType productType) : base(id, $"ToryBurch{productType.ToString()}", productType) {}
+            public ToryBurchCategory(int id, ProductType productType) : base(id, $"ToryBurch{productType.ToString()}", productType, Edit.LegitBags) {}
 
             public override Size GetTwitterImageSize(int count)
             {

@@ -11,7 +11,7 @@ namespace coach_bags_selenium.Data
     {
         private class CoachCategory : ProductCategory
         {
-            public CoachCategory() : base(0, "CoachBags", ProductType.Bags) {}
+            public CoachCategory() : base(0, "CoachBags", ProductType.Bags, Edit.BagsOnSale) {}
 
             public override Size GetTwitterImageSize(int count)
             {
