@@ -59,7 +59,7 @@ namespace coach_bags_selenium
             file = Path.GetFileName(file);
             var outputPath = Path.Combine(LOCAL_DIRECTORY, file).Replace(".jpg", "-twitter.jpg");
 
-            if (!TransformImage(size, outputPath, file))
+            if (!TransformImage(size, outputPath, file, edit))
                 return null;
             
             return await _mediator.Send(new S3UploadImageCommand {
@@ -69,7 +69,7 @@ namespace coach_bags_selenium
             });
         }
 
-        private bool TransformImage(Size size, string outputPath, string file)
+        private bool TransformImage(Size size, string outputPath, string file, Edit edit)
         {
             using (var newImage = new Image<Rgba32>(size.Width, size.Height))
             using (var img = Image.Load<Rgba32>(Path.Combine(LOCAL_DIRECTORY, file)))
@@ -88,16 +88,19 @@ namespace coach_bags_selenium
                     i.Crop(new Rectangle(size.Width - 1, 0, 1, size.Height));
                 });
 
-                var leftPixels = GetNumberOfDistinctPixels(leftStrip);
-                var rightPixesls = GetNumberOfDistinctPixels(rightStrip);
+                if (edit == Edit.LegitBags)
+                {
+                    var leftPixels = GetNumberOfDistinctPixels(leftStrip);
+                    var rightPixels = GetNumberOfDistinctPixels(rightStrip);
 
-                if (leftPixels > 5)
-                {
-                    return false;
-                }
-                if (rightPixesls > 5)
-                {
-                    return false;
+                    if (leftPixels > 5)
+                    {
+                        return false;
+                    }
+                    if (rightPixels > 5)
+                    {
+                        return false;
+                    }
                 }
 
                 newImage.Mutate(i =>
