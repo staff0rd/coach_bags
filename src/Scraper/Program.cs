@@ -25,6 +25,7 @@ namespace coach_bags_selenium
         typeof(ScrapeAndTweetCommand),
         typeof(TestAllCommand),
         typeof(TestMetadataCommand),
+        typeof(InstallPlaywrightCommand),
         typeof(TweetRandomProductCommand),
         typeof(GetTwitterImagesCommand),
         typeof(ScrapeCommand))]
@@ -37,7 +38,7 @@ namespace coach_bags_selenium
                 .ConfigureServices((hostContext, services) =>
                 {
                     services
-                        .AddTransient<ChromeDriver>(s => {
+                    .AddTransient<ChromeDriver>(s => {
                             var headless = s.GetRequiredService<IConfiguration>().GetValue<bool>("Headless", true);
                             return ConfigureDriver(headless);
                         })
@@ -57,6 +58,7 @@ namespace coach_bags_selenium
                             }
                             return new AmazonS3Client(options.AccessKey, options.Secret, config);
                         })
+                        .AddTransient<Browser>()
                         .AddTransient<DataFactory>();
                 });
 
@@ -93,10 +95,12 @@ namespace coach_bags_selenium
             if (headless)
                 options.AddArgument("headless");
             options.AddArgument("no-sandbox"); // needed to run inside container
+            options.AddExcludedArgument("enable-automation");
+            options.AddAdditionalCapability("useAutomationExtension", false);
 
             var driver = new ChromeDriver(options);
             driver.ExecuteChromeCommand("Network.setUserAgentOverride", new System.Collections.Generic.Dictionary<string, object> {
-                { "userAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.53 Safari/537.36" }
+                { "userAgent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36" }
             });
             driver.ExecuteChromeCommand("Page.addScriptToEvaluateOnNewDocument",
                 new System.Collections.Generic.Dictionary<string, object> {

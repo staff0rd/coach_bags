@@ -1,6 +1,5 @@
 using coach_bags_selenium.Data;
 using McMaster.Extensions.CommandLineUtils;
-using MediatR;
 
 namespace coach_bags_selenium
 {

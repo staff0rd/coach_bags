@@ -1,19 +1,21 @@
+using AngleSharp.Dom;
 using OpenQA.Selenium;
 
 namespace coach_bags_selenium
 {
     public class CoachBag
     {
-        private readonly IWebElement _element;
-        public string Link => _element.FindElement(By.CssSelector(".card-img a")).GetAttribute("href");
-        public string Name => _element.FindElement(By.ClassName("product-tile-name")).Text;
-        public decimal SalePrice => decimal.Parse(_element.FindElement(By.CssSelector(".sales .value")).GetAttribute("content"));
-        public decimal Price => decimal.Parse(_element.FindElement(By.CssSelector(".strike-through .value")).GetAttribute("content"));
+        private readonly IElement _element;
+        public string Link => "https://coachaustralia.com" + _element.QuerySelector(".card-img a").GetAttribute("href");
+        public string Name => _element.QuerySelector(".product-tile-name").TextContent;
+        public decimal SalePrice => decimal.Parse(_element.QuerySelector(".sales .value").GetAttribute("content"));
+        private IElement oldPriceElement => _element.QuerySelector(".strike-through .value");
+        public decimal Price => oldPriceElement != null ? decimal.Parse(oldPriceElement.GetAttribute("content")) : SalePrice;
         public decimal Savings => Price - SalePrice;
         public string Id => _element.GetAttribute("data-pid");
-        public string Image => _element.FindElement(By.ClassName("card-img-top")).GetAttribute("src");
+        public string Image => _element.QuerySelector(".card-img-top").GetAttribute("src");
 
-        public CoachBag(IWebElement element)
+        public CoachBag(IElement element)
         {
             _element = element;
         }

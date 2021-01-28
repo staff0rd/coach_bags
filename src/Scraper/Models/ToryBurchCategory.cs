@@ -24,14 +24,14 @@ namespace coach_bags_selenium.Data
                 _ => throw new NotImplementedException(),
             };
 
-            public override async Task<IEnumerable<Product>> GetProducts(ChromeDriver driver, int maxCount)
+            public override async Task<IEnumerable<Product>> GetProducts(Browser browser, int maxCount)
             {
-                return await HtmlHelpers.GetProductsFromInfiniteScroll(driver, "[data-id='ProductTile']", (element) => new ToryBurchProduct(element).AsEntity(this), GetProductsUrl(0));
+                return await browser.GetProductsFromInfiniteScroll("[data-id='ProductTile']", (element) => new ToryBurchProduct(element).AsEntity(this), GetProductsUrl(0));
             }
 
-            public async override Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
+            public async override Task<ProductMetadata> GetProductMetadataFromUrl(Browser browser, Product product)
             {
-                var html = await HtmlHelpers.GetHtml(driver, product.Link, 2);
+                var html = await browser.GetHtml(product.Link, 2);
                 var images = html.QuerySelectorAll("[data-id$=detailsGalleryThumbnails] img")
                     .Select(i => i.GetAttribute("src")
                         .Replace("60x68", "1556x1770")

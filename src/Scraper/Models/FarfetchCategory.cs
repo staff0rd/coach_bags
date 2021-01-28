@@ -28,7 +28,7 @@ namespace coach_bags_selenium.Data
                 _ => throw new NotImplementedException(),
             };
 
-            public override async Task<IEnumerable<Product>> GetProducts(ChromeDriver driver, int maxCount)
+            public override async Task<IEnumerable<Product>> GetProducts(Browser browser, int maxCount)
             {
                 var products = new List<Product>();
                 var pageNumber = 0;
@@ -46,9 +46,9 @@ namespace coach_bags_selenium.Data
 
                 return products;
             }
-            public async override Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
+            public async override Task<ProductMetadata> GetProductMetadataFromUrl(Browser browser, Product product)
             {
-                var html = await HtmlHelpers.GetHtml(driver, product.Link);
+                var html = await browser.GetHtml(product.Link);
                 var images = html.QuerySelectorAll("div[data-tstid=slideshow] img")
                     .Select(p => p.GetAttribute("src"))
                     .Select(p => Regex.Replace(p, @"_\d+\.jpg", "_1000.jpg"));

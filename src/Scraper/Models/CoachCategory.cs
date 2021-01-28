@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using OpenQA.Selenium.Chrome;
+using PlaywrightSharp;
 using SixLabors.ImageSharp;
 
 namespace coach_bags_selenium.Data
@@ -19,9 +20,9 @@ namespace coach_bags_selenium.Data
                 return base.GetTwitterImageSize(count);
             }
 
-            public async override Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
+            public async override Task<ProductMetadata> GetProductMetadataFromUrl(Browser browser, Product product)
             {
-                var html = await HtmlHelpers.GetHtml(driver, product.Link);
+                var html = await browser.GetHtml(product.Link);
 
                 var tags = html.QuerySelectorAll(".d-none.features li")
                     .Select(p => p.TextContent.Trim())
@@ -36,16 +37,15 @@ namespace coach_bags_selenium.Data
                 };
             }
 
-            public async override Task<IEnumerable<Product>> GetProducts(ChromeDriver driver, int maxCount)
+            public async override Task<IEnumerable<Product>> GetProducts(Browser browser, int maxCount)
             {
-                var url = $"https://coachaustralia.com/on/demandware.store/Sites-au-coach-Site/en_AU/Search-UpdateGrid?cgid=sale-womens_sale-bags&start=0&sz={maxCount}";
-                driver.Navigate().GoToUrl(url);
-
-                var products =
-                    driver.FindElementsByClassName("product")
-                    .Select(p => new CoachBag(p).AsEntity);
-
-                await Task.Delay(0);
+                var url = $"https://coachaustralia.com/on/demandware.store/Sites-au-coach-Site/en_AU/Search-UpdateGrid?cgid=outlet-women-bags&start=0&sz={maxCount}";
+                
+                var html = await browser.GetHtml(url);
+                
+                var products = html.QuerySelectorAll(".product")
+                    .Select(p => new CoachBag(p).AsEntity)
+                    .ToList();
 
                 return products;
             }

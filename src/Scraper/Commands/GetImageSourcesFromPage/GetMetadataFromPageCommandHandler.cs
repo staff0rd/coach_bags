@@ -12,28 +12,20 @@ namespace coach_bags_selenium
 {
     public class GetMetadataFromPageCommandHandler : IRequestHandler<GetMetadataFromPageCommand, ProductMetadata>
     {
-        private readonly ChromeDriver _driver;
+        private readonly Browser _html;
 
-        public GetMetadataFromPageCommandHandler(ChromeDriver driver)
+        public GetMetadataFromPageCommandHandler(Browser browser)
         {
-            _driver = driver;
+            _html = browser;
         }
 
         public async Task<ProductMetadata> Handle(GetMetadataFromPageCommand request, CancellationToken cancellationToken)
         {
-            try
-            {
-                var metadata = await request.Product.Category.GetProductMetadataFromUrl(_driver, request.Product);
-                if (!metadata.Images.Any())
-                    throw new InvalidOperationException("No images found");
-                return metadata;
-            }
-            finally
-            {
-                _driver?.Quit();
-            }
+            
+            var metadata = await request.Product.Category.GetProductMetadataFromUrl(_html, request.Product);
+            if (!metadata.Images.Any())
+                throw new InvalidOperationException("No images found");
+            return metadata;
         }
-
-        
     }
 }

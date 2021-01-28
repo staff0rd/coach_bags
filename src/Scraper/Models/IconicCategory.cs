@@ -28,13 +28,13 @@ namespace coach_bags_selenium.Data
                 _ => throw new NotImplementedException()
             };
         
-            public async override Task<IEnumerable<Product>> GetProducts(ChromeDriver driver, int maxCount) => 
-                await HtmlHelpers.LoopPages(10, GetProductsUrl, GetPage);
+            public async override Task<IEnumerable<Product>> GetProducts(Browser browser, int maxCount) => 
+                await browser.LoopPages(10, GetProductsUrl, GetPage);
 
-            private async Task<IEnumerable<Product>> GetPage(string url)
+            private async Task<IEnumerable<Product>> GetPage(Browser browser, string url)
             {
                 var source = await url.GetStringAsync();
-                var document = await HtmlHelpers.GetDocumentFromSource(source);
+                var document = await browser.GetDocumentFromSource(source);
 
                 var products = document.QuerySelectorAll(".product")
                     .Select(p => new IconicProduct(p))
@@ -44,9 +44,9 @@ namespace coach_bags_selenium.Data
                 return products;
             }
 
-            public async override Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
+            public async override Task<ProductMetadata> GetProductMetadataFromUrl(Browser browser, Product product)
             {
-                var html = await HtmlHelpers.GetHtml(driver, product.Link);
+                var html = await browser.GetHtml(product.Link);
 
                 var images = html.QuerySelectorAll(".thumbnails img")
                     .Select(p => p.GetAttribute("data-src"))

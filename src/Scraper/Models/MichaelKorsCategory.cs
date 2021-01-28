@@ -27,7 +27,7 @@ namespace coach_bags_selenium.Data
                 _ => throw new NotImplementedException(),
             };
 
-            private async Task<IEnumerable<Product>> GetPage(string url) 
+            private async Task<IEnumerable<Product>> GetPage(Browser browser, string url) 
             {
                 try {
                     var products = await url
@@ -46,14 +46,14 @@ namespace coach_bags_selenium.Data
                 }
             }
 
-            public override async Task<IEnumerable<Product>> GetProducts(ChromeDriver driver, int maxCount)
+            public override async Task<IEnumerable<Product>> GetProducts(Browser browser, int maxCount)
             {
-                return await HtmlHelpers.LoopPages(10, GetProductsUrl, GetPage);
+                return await browser.LoopPages(10, GetProductsUrl, GetPage);
             }
 
-            public async override Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
+            public async override Task<ProductMetadata> GetProductMetadataFromUrl(Browser browser, Product product)
             {
-                var html = await HtmlHelpers.GetHtml(driver, product.Link, 2);
+                var html = await browser.GetHtml(product.Link, 2);
                 
                 var images = html.QuerySelectorAll(".pdp-gallery button img")
                     .Select(i => "https:" + i.GetAttribute("src"))

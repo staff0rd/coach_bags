@@ -23,7 +23,7 @@ namespace coach_bags_selenium.Data
         public static readonly ProductCategory IconicDresses = new IconicCategory(12, ProductType.Dresses, Edit.IconicDresses);
         public static readonly ProductCategory PradaBags = new PradaCategory(13, ProductType.Bags, Edit.LegitBags);
         public static readonly ProductCategory MichaelKorsBags = new MichaelKorsCategory(14, ProductType.Bags, Edit.LegitBags);
-
+        public static readonly ProductCategory CoachBagsLegit = new CoachCategory();
         public ProductType ProductType { get; private set; }
         public Edit Edit { get; protected set; }
 
@@ -32,12 +32,12 @@ namespace coach_bags_selenium.Data
             throw new NotImplementedException();
         }
 
-        public virtual Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
+        public virtual Task<ProductMetadata> GetProductMetadataFromUrl(Browser browser, Product product)
         {
             throw new NotImplementedException();
         }
 
-        public virtual Task<IEnumerable<Product>> GetProducts(ChromeDriver driver, int maxCount)
+        public virtual Task<IEnumerable<Product>> GetProducts(Browser browser, int maxCount)
         {
             throw new NotImplementedException();
         }

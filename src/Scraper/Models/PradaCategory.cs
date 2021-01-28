@@ -29,10 +29,10 @@ namespace coach_bags_selenium.Data
                 _ => throw new NotImplementedException(),
             };
 
-            private async Task<IEnumerable<Product>> GetPage(string url)
+            private async Task<IEnumerable<Product>> GetPage(Browser browser, string url)
             {
                 var source = await url.GetStringAsync();
-                var document = await HtmlHelpers.GetDocumentFromSource(source);
+                var document = await browser.GetDocumentFromSource(source);
 
                 var products = document.QuerySelectorAll("product-qb-component")
                     .Select(p => new PradaProduct(p))
@@ -42,14 +42,14 @@ namespace coach_bags_selenium.Data
                 return products;
             }
 
-            public override async Task<IEnumerable<Product>> GetProducts(ChromeDriver driver, int maxCount)
+            public override async Task<IEnumerable<Product>> GetProducts(Browser browser, int maxCount)
             {
-                return await HtmlHelpers.LoopPages(10, GetProductsUrl, GetPage);
+                return await browser.LoopPages(10, GetProductsUrl, GetPage);
             }
 
-            public async override Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
+            public async override Task<ProductMetadata> GetProductMetadataFromUrl(Browser browser, Product product)
             {
-                var html = await HtmlHelpers.GetHtml(driver, product.Link);
+                var html = await browser.GetHtml(product.Link);
                 
                 var images = html.QuerySelectorAll(".pDetails__slide")
                     .Select(s => {

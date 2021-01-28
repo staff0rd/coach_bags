@@ -45,22 +45,22 @@ namespace coach_bags_selenium.Data
                 }
             }
 
-            public async override Task<IEnumerable<Product>> GetProducts(ChromeDriver driver, int maxCount)
+            public async override Task<IEnumerable<Product>> GetProducts(Browser browser, int maxCount)
             {
                 if (IsSale)
                 {
                     string url = GetProductsUrl(-1);
-                    return await GetPage(url);
+                    return await GetPage(browser, url);
                 } else
                 {
-                    return await HtmlHelpers.LoopPages(5, GetProductsUrl, GetPage);
+                    return await browser.LoopPages(5, GetProductsUrl, GetPage);
                 }
             }
 
-            private async Task<IEnumerable<Product>> GetPage(string url)
+            private async Task<IEnumerable<Product>> GetPage(Browser browser, string url)
             {
                 var source = await url.GetStringAsync();
-                var document = await HtmlHelpers.GetDocumentFromSource(source);
+                var document = await browser.GetDocumentFromSource(source);
 
                 var products = document.QuerySelectorAll(".products-grid__item")
                     .Select(p => new ForwardProduct(p))
@@ -72,9 +72,9 @@ namespace coach_bags_selenium.Data
                 return products;
             }
 
-            public async override Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
+            public async override Task<ProductMetadata> GetProductMetadataFromUrl(Browser browser, Product product)
             {
-                var html = await HtmlHelpers.GetHtml(driver, product.Link);
+                var html = await browser.GetHtml(product.Link);
 
                 var tags = html.QuerySelectorAll("#pdp-details li")
                     .Select(p => p.TextContent.Trim())

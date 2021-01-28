@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/src/Scraper/bin/Debug/netcoreapp3.1/coach_bags_selenium.dll",
-            "args": [ "tweet", "-p", "-c", "CoachBags", "--count=30"],
-            //"args": [ "tweet", "-p", "-c", "MichaelKorsBags", "--count=400"],
-            //"args": [ "tweetonly", "-p", "-c", "MichaelKorsBags", "--id=30H9LUSL2T"],
+            //"args": [ "tweet", "-p", "-c", "OutnetCoats", "--count=30"],
+            //"args": [ "tweet", "-p", "-c", "IconicDresses", "--count=400"],
+            //"args": [ "tweetonly", "-p", "-c", "IconicDresses", "--id=AD627AA65UCO"],
             // "args": [ "twitterimages", "-c", "PradaBags", "-n", "2020-11-01T03:27", 
             //     "--source", "local/LegitBags/images/2020/11/01/0327-1.jpg",
             //     "--source", "local/LegitBags/images/2020/11/01/0327-2.jpg",
@@ -21,7 +21,7 @@
             //     "--source", "local/LegitBags/images/2020/11/01/0327-5.jpg"]
             //"args": [ "tweetonly", "-p", "-c", "ToryBurchBags", "-s=2020-10-01"],
             //"args": [ "testmeta", "-c", "RebeccaMinkoffBags", "--id", "HF16ICKC17-champagne"],
-            //"args": [ "test"],
+            "args": [ "test"],
             //"args": [ "backfill", "-o",],
             //"args": [ "export", "-a", "-e", "FwrdDresses"],
             "cwd": "${workspaceFolder}/src",
@@ -29,7 +29,7 @@
             "stopAtEntry": false,
             "env": {
                 "DOTNET_ENVIRONMENT": "Development",
-                "Headless": "false",
+                "Headless": "true",
             }
         },
         {

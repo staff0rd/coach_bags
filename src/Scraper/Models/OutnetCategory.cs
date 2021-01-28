@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OpenQA.Selenium.Chrome;
+using PlaywrightSharp;
 using SixLabors.ImageSharp;
 
 namespace coach_bags_selenium.Data
@@ -19,15 +20,19 @@ namespace coach_bags_selenium.Data
                 return base.GetTwitterImageSize(count);
             }
             
-            public async override Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
+            public async override Task<ProductMetadata> GetProductMetadataFromUrl(Browser browser, Product product)
             {
-                driver.Navigate().GoToUrl(product.Link);
-                var json = driver.ExecuteScript("return JSON.stringify(window.state.pdp.detailsState.response.body.products)").ToString();
+                using var playwright = await Playwright.CreateAsync(debug: "pw:api");
+                await using var browserInstance = await playwright.Chromium.LaunchAsync(headless: browser.Headless);
+                var page = await browserInstance.NewPageAsync();
+
+                await page.GoToAsync(product.Link);
+                var json = await page.EvaluateAsync<string>("JSON.stringify(window.state.pdp.detailsState.response.body.products)");
                 var images = coach_bags_selenium.Outnet.OutnetProduct.FromJson(json)
                     .SelectMany(p => p.ToEntity(this).Images)
                     .ToArray();
 
-                var html = await HtmlHelpers.GetDocumentFromSource(driver.PageSource);
+                var html = await browser.GetDocumentFromSource(await page.GetContentAsync());
 
                 var tags = html.QuerySelectorAll("#TECHNICAL_DESCRIPTION p")
                     .Select(p => p.TextContent.Trim())
@@ -46,15 +51,18 @@ namespace coach_bags_selenium.Data
                 _ => throw new NotImplementedException(),
             };
 
-            public async override Task<IEnumerable<Product>> GetProducts(ChromeDriver driver, int maxCount)
+            public async override Task<IEnumerable<Product>> GetProducts(Browser browser, int maxCount)
             {
+                using var playwright = await Playwright.CreateAsync(debug: "pw:api");
+                await using var browserInstance = await playwright.Chromium.LaunchAsync(headless: browser.Headless);
+                var page = await browserInstance.NewPageAsync();
                 var products = new List<Product>();
                 var pageNumber = 0;
                 while (products.Count < maxCount)
                 {
                     var url = GetProductsUrl(++pageNumber);
-                    driver.Navigate().GoToUrl(url);
-                    var json = driver.ExecuteScript("return JSON.stringify(window.state?.plp.listing.visibleProducts[0].products || [])").ToString();
+                    await page.GoToAsync(url);
+                    var json = await page.EvaluateAsync<string>("JSON.stringify(window.state ? window.state.plp.listing.visibleProducts[0].products : [])");
                     
                     var p = coach_bags_selenium.Outnet.OutnetProduct.FromJson(json)
                         .Where(p => p.Price.WasPrice != null)

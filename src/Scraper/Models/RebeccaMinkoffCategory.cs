@@ -24,7 +24,7 @@ namespace coach_bags_selenium.Data
                 _ => throw new NotImplementedException(),
             };
 
-            public override async Task<IEnumerable<Product>> GetProducts(ChromeDriver driver, int maxCount)
+            public override async Task<IEnumerable<Product>> GetProducts(Browser browser, int maxCount)
             {
                 Func<AngleSharp.Dom.IElement, Product> converter = (element) =>
                 {
@@ -32,12 +32,12 @@ namespace coach_bags_selenium.Data
                     var entity = prod.AsEntity(this);
                     return entity;
                 };
-                return await HtmlHelpers.GetProductsFromInfiniteScroll(driver, "[class*='mix collection-grid--block']", converter, GetProductsUrl(0), 2);
+                return await browser.GetProductsFromInfiniteScroll("[class*='mix collection-grid--block']", converter, GetProductsUrl(0), 2);
             }
 
-            public async override Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
+            public async override Task<ProductMetadata> GetProductMetadataFromUrl(Browser browser, Product product)
             {
-                var html = await HtmlHelpers.GetHtml(driver, product.Link);
+                var html = await browser.GetHtml(product.Link);
                 var images = html.QuerySelectorAll(".product-main picture img")
                     .Select(i => i.GetAttribute("src"))
                     .Where(p => p != null)

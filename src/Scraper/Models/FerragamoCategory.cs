@@ -48,7 +48,7 @@ namespace coach_bags_selenium.Data
                 }
             }
 
-            public override async Task<IEnumerable<Product>> GetProducts(ChromeDriver driver, int maxCount)
+            public override async Task<IEnumerable<Product>> GetProducts(Browser browser, int maxCount)
             {
                 var pageNumber = 0;
                 var products = new List<Product> (await GetPage(++pageNumber));
@@ -56,9 +56,9 @@ namespace coach_bags_selenium.Data
                 return products;
             }
 
-            public async override Task<ProductMetadata> GetProductMetadataFromUrl(ChromeDriver driver, Product product)
+            public async override Task<ProductMetadata> GetProductMetadataFromUrl(Browser browser, Product product)
             {
-                var html = await HtmlHelpers.GetHtml(driver, product.Link, 2);
+                var html = await browser.GetHtml(product.Link, 2);
                 
                 var images = html.QuerySelectorAll("img[class*=product-gallery]")
                     .Select(i => i.GetAttribute("data-lazy") ?? i.GetAttribute("src"))
