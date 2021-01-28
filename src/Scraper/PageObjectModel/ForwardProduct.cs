@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AngleSharp.Dom;
@@ -32,18 +33,29 @@ namespace coach_bags_selenium
             _element = element;
         }
 
-        public coach_bags_selenium.Data.Product AsEntity(ProductCategory category) => new Data.Product
+        public coach_bags_selenium.Data.Product AsEntity(ProductCategory category)
         {
-            Link = Link,
-            Brand = Brand,
-            Name = Name,
-            SalePrice = SalePrice ?? Price,
-            Price = Price,
-            Savings = Savings,
-            Id = Id,
-            Image = Image(category),
-            CategoryId = category.Id,
-            Edit = category.Edit,
-        };
+            try
+            {
+                return new Data.Product
+                {
+                    Link = Link,
+                    Brand = Brand,
+                    Name = Name,
+                    SalePrice = SalePrice ?? Price,
+                    Price = Price,
+                    Savings = Savings,
+                    Id = Id,
+                    Image = Image(category),
+                    CategoryId = category.Id,
+                    Edit = category.Edit,
+                };
+            } 
+            catch
+            {
+                System.IO.File.WriteAllText("payload.txt", _element.InnerHtml);
+                throw;
+            }
+        }
     }
 }
