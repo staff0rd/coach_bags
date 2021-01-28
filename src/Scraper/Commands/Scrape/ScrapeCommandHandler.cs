@@ -42,6 +42,8 @@ namespace coach_bags_selenium
                     _logger.LogInformation($"Removed {dupeCount}, total is now {deDupedProducts.Count}");
                 }
 
+                _logger.LogInformation($"Found {products.Count()} products");
+
                 _data.GetDatabaseContext().Save(deDupedProducts);
             }
             finally
