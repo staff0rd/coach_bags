@@ -4,11 +4,12 @@ WORKDIR /app
 # Copy csproj and restore as distinct layers
 COPY *.csproj ./
 RUN dotnet restore
-RUN dotnet tool restore
 
 # Copy everything else and build
 COPY . ./
-RUN dotnet publish -c Release -o out -p:PublishChromeDriver=true
+ARG VERSION
+RUN dotnet publish -c Release -o out -p:PublishChromeDriver=true \
+  -p:Version="$VERSION"
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
