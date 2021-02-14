@@ -53,6 +53,8 @@ namespace coach_bags_selenium
             } 
             catch
             {
+                Console.WriteLine("InnerHtml...");
+                Console.WriteLine(_element.InnerHtml);
                 System.IO.File.WriteAllText("payload.txt", _element.InnerHtml);
                 throw;
             }
