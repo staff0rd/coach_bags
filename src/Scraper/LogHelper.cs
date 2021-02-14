@@ -1,11 +1,11 @@
 using System;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.UserSecrets;
 using Serilog;
 using Serilog.Events;
 using System.Collections.Generic;
 using Serilog.Sinks.PostgreSQL;
 using NpgsqlTypes;
+using System.Diagnostics;
 
 namespace coach_bags_selenium
 {
@@ -18,6 +18,7 @@ namespace coach_bags_selenium
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("Category", categoryName ?? appConfig.GetValue<string>("Category"))
+                .Enrich.WithProperty("Version", FileVersionInfo.GetVersionInfo(typeof(LogHelper).Assembly.Location).ProductVersion)
                 .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}");
 
             WriteToPostgres(config, appConfig);
