@@ -74,7 +74,7 @@ namespace coach_bags_selenium.Data
                     existing.Brand = product.Brand;
                 }
             }
-            logger.LogInformation("Saving {count} products...", products.Count());
+            logger.LogDebug("Saving {count} products...", products.Count());
             this.SaveChanges();
             return now;
         }
