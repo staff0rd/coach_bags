@@ -41,6 +41,9 @@ namespace coach_bags_selenium.Data
                         .Where(p => p.PriceInfo.FinalPrice < 1000)
                         .Select(p => p.ToEntity(this));
 
+                    if (p.Count() == 0)
+                        break;
+
                     products.AddRange(p);
                 }
 
