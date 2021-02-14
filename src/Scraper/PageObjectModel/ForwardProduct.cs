@@ -25,8 +25,10 @@ namespace coach_bags_selenium
                 try
                 {
                     return SalePriceElement != null ? 
-                    (decimal?)decimal.Parse(SalePriceElement.Text().Replace("AU$ ", "")) :
-                    null;
+                    (decimal?)decimal.Parse(SalePriceElement.Text()
+                        .Replace("AU$ ", "") // AUD
+                        .Replace("$", "")) // USD
+                         : null;
                 }
                 catch (Exception e)
                 {
