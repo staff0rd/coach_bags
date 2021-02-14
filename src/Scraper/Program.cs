@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using OpenQA.Selenium.Chrome;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.Extensions.Logging;
 using Amazon.S3;
 using McMaster.Extensions.CommandLineUtils;
@@ -13,7 +12,6 @@ using MediatR;
 using Amazon;
 using Microsoft.Extensions.Options;
 using Serilog;
-using System.Diagnostics;
 
 // #if DEBUG
 // [assembly: UserSecretsIdAttribute("35c1247a-0256-4d98-b811-eb58b6162fd7")]
@@ -32,7 +30,15 @@ namespace coach_bags_selenium
         typeof(ScrapeCommand))]
     class Program
     {
-        static Task Main(string[] args) => CreateHostBuilder().RunCommandLineApplicationAsync<Program>(args);
+        static async Task Main(string[] args)
+        {
+            try
+            {
+                await CreateHostBuilder().RunCommandLineApplicationAsync<Program>(args);
+            } finally {
+                Log.CloseAndFlush();
+            }
+        }
                 
         public static IHostBuilder CreateHostBuilder() =>
             Host.CreateDefaultBuilder()
