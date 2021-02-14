@@ -32,7 +32,7 @@ namespace coach_bags_selenium
                 .Where(p => request.Overwrite || p.Images == null)
                 .ToList();
 
-            _logger.LogInformation($"Found {productsWithoutImages.Count} products without images");
+            _logger.LogInformation("Found {productsWithoutImages} products without images", productsWithoutImages.Count);
 
             var count = 0;
             foreach (var product in productsWithoutImages)
@@ -41,7 +41,7 @@ namespace coach_bags_selenium
                 product.Images = result.ImagesS3Uploaded.ToArray();
                 await db.SaveChangesAsync();
                 count++;
-                _logger.LogInformation($"Completed {count}/{productsWithoutImages.Count} images");
+                _logger.LogInformation("Completed {count}/{total} images", count, productsWithoutImages.Count);
             }
 
             return Unit.Value;

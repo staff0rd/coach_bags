@@ -55,14 +55,14 @@ namespace coach_bags_selenium
                         Medias = media.ToList()
                     });
                 }
-                _logger.LogInformation($"{(request.PrepareOnly ? "Prepared" : "Tweeted")}: {text}");
-                _logger.LogInformation($"Tags: {string.Join(", ", product.Tags)}");
+                _logger.LogInformation("{action}: {text}", request.PrepareOnly ? "Prepared" : "Tweeted", text);
+                _logger.LogInformation("Tags: {tags}", string.Join(", ", product.Tags));
                 db.SaveChanges();
 
                 await _mediator.Send(new ExportProductsCommand { Edit = product.Category.Edit });
             }
             else
-                _logger.LogWarning($"{request.Category.DisplayName} has nothing new to tweet");
+                _logger.LogWarning("{category} has nothing new to tweet", request.Category.DisplayName);
 
             return Unit.Value;
         }

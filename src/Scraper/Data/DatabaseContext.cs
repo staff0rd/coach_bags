@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace coach_bags_selenium.Data
 {
@@ -48,7 +49,7 @@ namespace coach_bags_selenium.Data
             return entity;
         }
 
-        public DateTime Save(IEnumerable<Product> products)
+        public DateTime Save(IEnumerable<Product> products, ILogger logger)
         {
             var now = DateTime.UtcNow;
 
@@ -73,7 +74,7 @@ namespace coach_bags_selenium.Data
                     existing.Brand = product.Brand;
                 }
             }
-            Console.WriteLine("Saving...");
+            logger.LogInformation("Saving {count} products...", products.Count());
             this.SaveChanges();
             return now;
         }
