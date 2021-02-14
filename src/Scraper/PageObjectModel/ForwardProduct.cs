@@ -18,9 +18,27 @@ namespace coach_bags_selenium
         public string Brand => NameBlock.ElementAt(0);
         public string Name => NameBlock.ElementAt(1);
         private IElement SalePriceElement => _element.QuerySelectorAll(".price__sale").FirstOrDefault();
-        public decimal? SalePrice => SalePriceElement != null ? 
-            (decimal?)decimal.Parse(SalePriceElement.Text().Replace("AU$ ", "")) :
-            null;
+        public decimal? SalePrice
+        {
+            get
+            {
+                try
+                {
+                    return SalePriceElement != null ? 
+                    (decimal?)decimal.Parse(SalePriceElement.Text().Replace("AU$ ", "")) :
+                    null;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine("SalePrice:");
+                    Console.WriteLine("----------");
+                    Console.WriteLine(SalePriceElement.Text());  
+                    Console.WriteLine("----------");
+                    throw;
+                }
+            }
+        }
 
         public decimal Price => decimal.Parse(_element.QuerySelectorAll(".price__retail")[0].Text().Replace("AU$ ", "").Replace("original price", "").Trim());
         public decimal Savings => SalePrice.HasValue ? Price - SalePrice.Value : 0;
