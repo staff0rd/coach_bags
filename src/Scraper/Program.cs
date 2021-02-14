@@ -20,7 +20,9 @@ using Npgsql;
 using Serilog.Sinks.PostgreSQL;
 using NpgsqlTypes;
 
+#if DEBUG
 [assembly: UserSecretsIdAttribute("35c1247a-0256-4d98-b811-eb58b6162fd7")]
+#endif
 namespace coach_bags_selenium
 {
 
