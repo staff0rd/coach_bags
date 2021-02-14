@@ -29,7 +29,7 @@ namespace coach_bags_selenium
         {
             var s3Path = Path.Combine(_options.Directory, request.TargetDirectory, request.TargetFileName);
             await new TransferUtility(_s3).UploadAsync(request.SourceFilePath, _options.Bucket, s3Path);
-            _logger.LogInformation("Uploaded {s3Path} to S3", s3Path);
+            _logger.LogDebug("Uploaded {s3Path} to S3", s3Path);
             return s3Path;
         }
     }

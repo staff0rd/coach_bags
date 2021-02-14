@@ -73,7 +73,7 @@ namespace coach_bags_selenium
                     .WithHeader("Connection", "keep-alive") // needed for outnet
                     .DownloadFileAsync(LOCAL_DIRECTORY, downloadFileName);
 
-                _logger.LogInformation("Downloaded {source}", source);
+                _logger.LogDebug("Downloaded {source}", source);
                 return await _mediator.Send(new S3UploadImageCommand { 
                     FilePath = Path.Combine(LOCAL_DIRECTORY, downloadFileName),
                     Timestamp = timestamp,
