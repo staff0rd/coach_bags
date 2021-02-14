@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using coach_bags_selenium.Data;
 using Microsoft.EntityFrameworkCore;
 using OpenQA.Selenium.Chrome;
@@ -14,18 +13,12 @@ using MediatR;
 using Amazon;
 using Microsoft.Extensions.Options;
 using Serilog;
-using Serilog.Events;
-using System.Collections.Generic;
-using Npgsql;
-using Serilog.Sinks.PostgreSQL;
-using NpgsqlTypes;
 
 #if DEBUG
 [assembly: UserSecretsIdAttribute("35c1247a-0256-4d98-b811-eb58b6162fd7")]
 #endif
 namespace coach_bags_selenium
 {
-
     [Subcommand(
         typeof(GetMetadataCommand),
         typeof(BackfillImagesCommand),
@@ -67,43 +60,13 @@ namespace coach_bags_selenium
                         })
                         .AddTransient<DataFactory>();
                         
-                        var config = new LoggerConfiguration()
-                            .MinimumLevel.Debug()
-                            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                            .Enrich.FromLogContext()
-                            .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}");
-
-                        WriteToPostgres(config, hostContext.Configuration);
-
-                        Log.Logger = config.CreateLogger();
+                        LogHelper.Configure(hostContext.Configuration);
                 })
                 .ConfigureLogging((_, logging) =>
                 {
                     logging.ClearProviders();
                     logging.AddSerilog();
                 });
-
-        private static void WriteToPostgres(LoggerConfiguration logConfig, IConfiguration appConfig)
-        {
-            var connectionString = appConfig.GetConnectionString("Postgres");
-            
-            string tableName = "logs";
-            IDictionary<string, ColumnWriterBase> columnWriters = new Dictionary<string, ColumnWriterBase>
-            {
-                { "message", new RenderedMessageColumnWriter(NpgsqlDbType.Text) },
-                { "message_template", new MessageTemplateColumnWriter(NpgsqlDbType.Text) },
-                { "level", new LevelColumnWriter(true, NpgsqlDbType.Varchar) },
-                { "created", new TimestampColumnWriter(NpgsqlDbType.TimestampTz) },
-                { "exception", new ExceptionColumnWriter(NpgsqlDbType.Text) },
-                { "properties", new PropertiesColumnWriter(NpgsqlDbType.Jsonb) },
-            };
-
-            logConfig.WriteTo
-                .PostgreSQL(connectionString, tableName, columnWriters, failureCallback: (e) =>
-                {
-                    Console.WriteLine("Could not log to postgres" + e.Message);
-                }, needAutoCreateTable: true, needAutoCreateSchema: true);
-        }
 
         private Microsoft.Extensions.Configuration.IConfiguration _config;
         private ILogger<Program> _logger;
