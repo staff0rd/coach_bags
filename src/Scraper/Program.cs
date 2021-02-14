@@ -38,6 +38,7 @@ namespace coach_bags_selenium
             }
             finally
             {
+                await Task.Delay(5000); // ew
                 Log.CloseAndFlush();
             }
         }
