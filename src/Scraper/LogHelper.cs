@@ -19,7 +19,7 @@ namespace coach_bags_selenium
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("Category", categoryName ?? appConfig.GetValue<string>("Category"))
                 .Enrich.WithProperty("Version", FileVersionInfo.GetVersionInfo(typeof(LogHelper).Assembly.Location).ProductVersion)
-                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}");
+                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Version} {SourceContext} {Message:lj}{NewLine}{Exception}");
 
             WriteToPostgres(config, appConfig);
 
