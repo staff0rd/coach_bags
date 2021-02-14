@@ -35,7 +35,9 @@ namespace coach_bags_selenium
             try
             {
                 await CreateHostBuilder().RunCommandLineApplicationAsync<Program>(args);
-            } finally {
+            }
+            finally
+            {
                 Log.CloseAndFlush();
             }
         }
