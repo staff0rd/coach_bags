@@ -51,7 +51,7 @@ namespace coach_bags_selenium
 
             var totalPages = records.Count() / request.PageSize + (indexPageSize == request.PageSize ? 0 : 1);
             
-            _logger.LogInformation("Total records: {totalRecords}, total pages: {totalPages}", records.Count(), totalPages);
+            _logger.LogDebug("Total records: {totalRecords}, total pages: {totalPages}", records.Count(), totalPages);
 
             pages.Add(new Page { Name = "index.json", Products = records.Take(indexPageSize).ToArray() });
 
